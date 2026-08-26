@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS recommendations (
+    id VARCHAR(64) PRIMARY KEY,
+    user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    resource_id VARCHAR(64) NOT NULL REFERENCES resources(id) ON DELETE CASCADE,
+    score DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    explanation TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_recommendations_user ON recommendations(user_id);

@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS learner_profiles (
+    user_id VARCHAR(64) PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    experience_level VARCHAR(64) NOT NULL DEFAULT 'beginner',
+    minutes_per_day INT NOT NULL DEFAULT 60,
+    days_per_week INT NOT NULL DEFAULT 5,
+    target_role VARCHAR(255) NOT NULL DEFAULT '',
+    learning_preferences TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

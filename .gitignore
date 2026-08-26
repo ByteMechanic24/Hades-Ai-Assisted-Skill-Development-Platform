@@ -1,0 +1,9 @@
+.gradle/
+build/
+.metals/
+.bsp/
+.vscode/
+.idea/
+*.log
+node_modules/
+dist/
