@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useLearner } from '../../context/LearnerContext';
-import { Button, Badge } from '../ui';
-import { Bot, Send, Sparkles, X, ChevronRight, MessageSquare, Flame, CheckCircle2 } from 'lucide-react';
+import { Send, X, Compass, Sparkles, CornerDownLeft } from 'lucide-react';
 import { suggestedPrompts } from '../../mock/mockData';
+import { slideOverRight, backdrop } from '../../utils/motion';
 
 export function AssistantDrawer({ isOpen, onClose }) {
   const { assistantMessages, sendAssistantMessage, path, goal } = useLearner();
@@ -10,14 +11,25 @@ export function AssistantDrawer({ isOpen, onClose }) {
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
-    if (isOpen) {
-      scrollToBottom();
-    }
+    if (isOpen) scrollToBottom();
   }, [assistantMessages, isOpen]);
+
+  // Lock body scroll + Escape to close while open
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e) => e.key === 'Escape' && onClose();
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [isOpen, onClose]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -26,115 +38,135 @@ export function AssistantDrawer({ isOpen, onClose }) {
     setInput('');
   };
 
-  const handlePromptClick = (prompt) => {
-    sendAssistantMessage(prompt);
-  };
-
-  if (!isOpen) return null;
+  const handlePromptClick = (prompt) => sendAssistantMessage(prompt);
 
   return (
-    <div className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white dark:bg-[#0e1626]/95 backdrop-blur-xl border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col transition-all duration-300 animate-in slide-in-from-right text-slate-900 dark:text-slate-100">
-      {/* Header */}
-      <div className="p-4 border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 text-white">
-            <Bot className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-slate-900 dark:text-white text-sm">HADES AI Coach</h3>
-              <Badge variant="cyan" size="sm">Context-Aware</Badge>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Syncing with Phase 1 & Active Goals</p>
-          </div>
-        </div>
-        <button
-          onClick={onClose}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* Context Badge */}
-      <div className="px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 border-b border-indigo-100 dark:border-indigo-500/20 flex items-center justify-between text-xs">
-        <span className="text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5 font-medium">
-          <Flame className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
-          Active: <strong className="text-slate-900 dark:text-white font-semibold">{path?.phases?.[0]?.title || "Foundations & Vector Architecture"}</strong>
-        </span>
-        <span className="text-slate-500 dark:text-slate-400 font-mono">{path?.overallProgress || 45}% Complete</span>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {assistantMessages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex gap-3 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            {msg.sender === 'assistant' && (
-              <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-600/30 border border-indigo-200 dark:border-indigo-500/40 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              </div>
-            )}
-            <div
-              className={`max-w-[82%] rounded-2xl p-3.5 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap ${
-                msg.sender === 'user'
-                  ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-br-none shadow-md shadow-indigo-600/20'
-                  : 'bg-slate-100 dark:bg-slate-800/90 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700/60 rounded-bl-none shadow-sm'
-              }`}
-            >
-              {msg.content}
-              <div
-                className={`text-[10px] mt-1.5 ${
-                  msg.sender === 'user' ? 'text-indigo-100' : 'text-slate-400 dark:text-slate-500'
-                }`}
-              >
-                {msg.timestamp}
-              </div>
-            </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Suggested Prompts */}
-      <div className="p-3 border-t border-slate-200 dark:border-slate-800/60 bg-slate-50 dark:bg-slate-900/30">
-        <div className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-2 flex items-center gap-1.5">
-          <Sparkles className="w-3 h-3 text-indigo-600 dark:text-cyan-400" /> Suggested contextual questions:
-        </div>
-        <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
-          {suggestedPrompts.slice(0, 3).map((prompt, idx) => (
-            <button
-              key={idx}
-              onClick={() => handlePromptClick(prompt)}
-              className="text-left text-xs bg-white dark:bg-slate-800/80 hover:bg-indigo-50 dark:hover:bg-indigo-950/80 text-slate-700 dark:text-slate-300 hover:text-indigo-700 dark:hover:text-indigo-200 border border-slate-200 dark:border-slate-700/60 hover:border-indigo-400 dark:hover:border-indigo-500/40 px-2.5 py-1 rounded-lg transition duration-150 line-clamp-1"
-            >
-              {prompt}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Composer */}
-      <form onSubmit={handleSubmit} className="p-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80">
-        <div className="relative flex items-center">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about your roadmap, prerequisites..."
-            className="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl pl-3.5 pr-12 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            variants={backdrop}
+            initial="hidden"
+            animate="show"
+            exit="exit"
+            onClick={onClose}
+            className="fixed inset-0 z-50 bg-stone-950/40 backdrop-blur-sm"
           />
-          <button
-            type="submit"
-            disabled={!input.trim()}
-            className="absolute right-1.5 p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:hover:bg-indigo-600 text-white transition shadow-md shadow-indigo-600/30"
+          <motion.aside
+            variants={slideOverRight}
+            initial="hidden"
+            animate="show"
+            exit="exit"
+            className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white dark:bg-[#0e0e10] border-l border-stone-200 dark:border-white/[0.08] flex flex-col text-stone-900 dark:text-stone-100"
           >
-            <Send className="w-4 h-4" />
-          </button>
-        </div>
-      </form>
-    </div>
+            {/* Header */}
+            <div className="px-4 py-3.5 border-b border-stone-200 dark:border-white/[0.08] flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-amber-500 flex items-center justify-center">
+                  <Compass className="w-5 h-5 text-stone-950" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-display font-semibold text-stone-900 dark:text-white text-sm">HADES Coach</h3>
+                    <span className="mono-label text-[8px] text-amber-600 dark:text-amber-400 border border-amber-500/30 rounded px-1 py-0.5">
+                      Context-aware
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">Knows your goal &amp; where you are</p>
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-1.5 rounded-lg text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/[0.06] transition"
+                aria-label="Close coach"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Context bar */}
+            <div className="px-4 py-2.5 bg-stone-50 dark:bg-white/[0.02] border-b border-stone-200 dark:border-white/[0.08] flex items-center justify-between">
+              <span className="text-[11px] text-stone-600 dark:text-stone-300 flex items-center gap-1.5 min-w-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                <span className="truncate">
+                  {path?.phases?.[0]?.title || 'Foundations & Vector Architecture'}
+                </span>
+              </span>
+              <span className="mono-label text-[9px] text-stone-400 dark:text-stone-500 shrink-0 ml-2">
+                {path?.overallProgress ?? 45}% · {goal?.targetRole ? goal.targetRole.split(' ')[0] : 'Goal'}
+              </span>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {assistantMessages.map((msg) => (
+                <div key={msg.id} className={`flex gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  {msg.sender === 'assistant' && (
+                    <div className="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0 mt-0.5">
+                      <Compass className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                    </div>
+                  )}
+                  <div
+                    className={`max-w-[82%] rounded-xl px-3.5 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap ${
+                      msg.sender === 'user'
+                        ? 'bg-amber-500 text-stone-950 rounded-br-sm'
+                        : 'bg-stone-100 dark:bg-white/[0.05] text-stone-800 dark:text-stone-200 border border-stone-200 dark:border-white/[0.06] rounded-bl-sm'
+                    }`}
+                  >
+                    {msg.content}
+                    <div className={`mono-label text-[8px] mt-1.5 ${msg.sender === 'user' ? 'text-stone-800/60' : 'text-stone-400 dark:text-stone-500'}`}>
+                      {msg.timestamp}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Suggested prompts */}
+            <div className="p-3 border-t border-stone-200 dark:border-white/[0.08]">
+              <div className="mono-label text-stone-400 dark:text-stone-500 mb-2 flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3 text-amber-500" /> Try asking
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {suggestedPrompts.slice(0, 3).map((prompt, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handlePromptClick(prompt)}
+                    className="text-left text-xs bg-stone-50 dark:bg-white/[0.03] hover:bg-amber-500/10 text-stone-600 dark:text-stone-300 hover:text-amber-700 dark:hover:text-amber-300 border border-stone-200 dark:border-white/10 hover:border-amber-500/40 px-2.5 py-1.5 rounded-lg transition line-clamp-1"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Composer */}
+            <form onSubmit={handleSubmit} className="p-3 border-t border-stone-200 dark:border-white/[0.08]">
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Ask about your path, prerequisites, what to build…"
+                  className="w-full bg-stone-50 dark:bg-white/[0.03] border border-stone-200 dark:border-white/10 rounded-lg pl-3.5 pr-11 py-2.5 text-[13px] text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 transition"
+                />
+                <button
+                  type="submit"
+                  disabled={!input.trim()}
+                  className="absolute right-1.5 p-1.5 rounded-md bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:hover:bg-amber-500 text-stone-950 transition"
+                  aria-label="Send"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="mono-label text-[9px] text-stone-400 dark:text-stone-500 mt-2 flex items-center gap-1 justify-end">
+                <CornerDownLeft className="w-3 h-3" /> to send
+              </p>
+            </form>
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

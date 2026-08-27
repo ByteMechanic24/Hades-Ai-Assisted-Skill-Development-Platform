@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { GlassCard, Badge, Button } from '../ui';
-import { GitBranch, CheckCircle2, Lock, ArrowRight, Sparkles, RefreshCw, Cpu, Layers } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { GlassCard, Badge, Button, Eyebrow } from '../ui';
+import { CheckCircle2, Lock, ArrowRight, RefreshCw, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function PathVisualizerDemo() {
@@ -8,150 +9,160 @@ export function PathVisualizerDemo() {
 
   const demoRoadmaps = {
     agent: {
-      role: "Autonomous AI Agent Engineer",
+      role: 'Autonomous AI Agent Engineer',
       nodes: [
-        { title: "Vector Embeddings & HNSW", status: "completed", type: "Math / Storage", tag: "Completed" },
-        { title: "Deterministic Tool Calling (Pydantic / Zod)", status: "completed", type: "Core Schema", tag: "Completed" },
-        { title: "ReAct Loops & Execution Memory", status: "active", type: "Reasoning Loop", tag: "Active Step" },
-        { title: "Hierarchical Multi-Agent Teams (Agno / Crew)", status: "locked", type: "Swarm Design", tag: "Prerequisite Required" },
-        { title: "LLMOps & Ragas Hallucination Evals", status: "locked", type: "Production Ready", tag: "Milestone" }
-      ]
+        { title: 'Vector Embeddings & HNSW', status: 'completed', type: 'Math / Storage', tag: 'Done' },
+        { title: 'Deterministic Tool Calling', status: 'completed', type: 'Core Schema', tag: 'Done' },
+        { title: 'ReAct Loops & Execution Memory', status: 'active', type: 'Reasoning Loop', tag: 'Active' },
+        { title: 'Hierarchical Multi-Agent Teams', status: 'locked', type: 'Swarm Design', tag: 'Prereq required' },
+        { title: 'LLMOps & Hallucination Evals', status: 'locked', type: 'Production', tag: 'Milestone' },
+      ],
     },
     rag: {
-      role: "Enterprise RAG & Search Architect",
+      role: 'Enterprise RAG & Search Architect',
       nodes: [
-        { title: "Lexical BM25 & Sparse Indexing", status: "completed", type: "Information Retrieval", tag: "Completed" },
-        { title: "Dense Embedding Fine-Tuning", status: "completed", type: "Representation", tag: "Completed" },
-        { title: "Hybrid Reciprocal Rank Fusion (RRF)", status: "active", type: "Re-Ranking", tag: "Active Step" },
-        { title: "Context Window Compaction & Chunking", status: "locked", type: "Data Pipeline", tag: "Locked" },
-        { title: "Production Latency SLA & pgvector Tuning", status: "locked", type: "Database Optimization", tag: "Milestone" }
-      ]
-    }
+        { title: 'Lexical BM25 & Sparse Indexing', status: 'completed', type: 'Retrieval', tag: 'Done' },
+        { title: 'Dense Embedding Fine-Tuning', status: 'completed', type: 'Representation', tag: 'Done' },
+        { title: 'Hybrid Reciprocal Rank Fusion', status: 'active', type: 'Re-ranking', tag: 'Active' },
+        { title: 'Context Compaction & Chunking', status: 'locked', type: 'Data Pipeline', tag: 'Locked' },
+        { title: 'Latency SLA & pgvector Tuning', status: 'locked', type: 'DB Optimization', tag: 'Milestone' },
+      ],
+    },
   };
 
   const currentRoadmap = demoRoadmaps[activeTab];
 
+  const tabs = [
+    { id: 'agent', label: 'AI Agent Engineer' },
+    { id: 'rag', label: 'Enterprise RAG' },
+  ];
+
   return (
-    <section id="adaptive-engine" className="py-24 px-6 lg:px-12 relative overflow-hidden">
+    <section id="adaptive-engine" className="py-20 sm:py-24 px-5 lg:px-8 relative">
       <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-12 gap-6">
-          <div>
-            <Badge variant="primary" size="md" className="mb-3">
-              Interactive Preview
-            </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white font-display">
-              See the Adaptive Graph in Action
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-10 gap-6">
+          <div className="max-w-xl">
+            <Eyebrow className="mb-3">Interactive preview</Eyebrow>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-stone-900 dark:text-white">
+              The prerequisite graph, live.
             </h2>
-            <p className="text-slate-600 dark:text-slate-400 mt-2 text-sm sm:text-base max-w-xl">
-              Prerequisite relationships ensure you build deep mental models rather than getting stuck in tutorial hell.
+            <p className="text-stone-600 dark:text-stone-400 mt-3 text-sm sm:text-base leading-relaxed">
+              Dependencies are explicit. You never reach an advanced node until its foundations are earned — no tutorial
+              hell, no guessing what comes next.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 self-start lg:self-auto shadow-sm">
-            <button
-              onClick={() => setActiveTab('agent')}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${
-                activeTab === 'agent'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              AI Agent Engineer Track
-            </button>
-            <button
-              onClick={() => setActiveTab('rag')}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${
-                activeTab === 'rag'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              Enterprise RAG Track
-            </button>
+          {/* Track switcher */}
+          <div className="flex items-center gap-1 p-1 rounded-lg bg-stone-100 dark:bg-white/[0.04] border border-stone-200 dark:border-white/10 self-start">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
+                className={`px-3.5 py-2 rounded-md text-xs sm:text-sm font-medium transition ${
+                  activeTab === t.id
+                    ? 'bg-white dark:bg-white/10 text-stone-900 dark:text-white shadow-sm'
+                    : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Dynamic Visualizer Card */}
-        <GlassCard className="p-6 sm:p-8 border-indigo-200 dark:border-indigo-500/30">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-slate-200 dark:border-slate-800 gap-4">
+        {/* Visualizer */}
+        <GlassCard hoverEffect={false} className="p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-stone-200 dark:border-white/[0.08] gap-4">
             <div>
-              <span className="text-xs uppercase font-bold tracking-wider text-indigo-600 dark:text-indigo-400">Target Role</span>
-              <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white font-display mt-0.5">{currentRoadmap.role}</h3>
+              <span className="mono-label text-amber-600 dark:text-amber-400">Target role</span>
+              <motion.h3
+                key={currentRoadmap.role}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="font-display text-xl sm:text-2xl font-bold text-stone-900 dark:text-white mt-1"
+              >
+                {currentRoadmap.role}
+              </motion.h3>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="cyan" size="sm">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-cyan-400" /> Auto-Generated Graph
-              </Badge>
-              <Badge variant="emerald" size="sm">
-                Deterministic Hierarchy
-              </Badge>
+              <Badge variant="primary" size="sm">Auto-generated</Badge>
+              <Badge variant="default" size="sm">Deterministic order</Badge>
             </div>
           </div>
 
-          {/* Connected Node Visualizer */}
-          <div className="py-8 grid grid-cols-1 md:grid-cols-5 gap-4 relative">
-            {currentRoadmap.nodes.map((node, i) => (
-              <div key={i} className="relative flex flex-col">
-                <div
-                  className={`p-4 rounded-2xl border transition-all duration-300 h-full flex flex-col justify-between ${
-                    node.status === 'completed'
-                      ? 'bg-emerald-50/60 dark:bg-slate-900/60 border-emerald-300 dark:border-emerald-500/40 text-slate-700 dark:text-slate-300'
-                      : node.status === 'active'
-                      ? 'bg-indigo-50 dark:bg-gradient-to-b dark:from-indigo-950/80 dark:to-slate-900 border-indigo-600 dark:border-indigo-500 ring-2 ring-indigo-500/20 text-indigo-950 dark:text-white shadow-md'
-                      : 'bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800/80 text-slate-400 dark:text-slate-500 opacity-70'
+          {/* Node row */}
+          <div className="py-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 relative">
+            {currentRoadmap.nodes.map((node, i) => {
+              const done = node.status === 'completed';
+              const active = node.status === 'active';
+              return (
+                <motion.div
+                  key={`${activeTab}-${i}`}
+                  initial={{ opacity: 0, y: 8 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.05 }}
+                  className={`relative p-4 rounded-xl border h-full flex flex-col justify-between transition-colors ${
+                    active
+                      ? 'bg-amber-500/[0.06] border-amber-500/40 dark:border-amber-500/40'
+                      : done
+                      ? 'bg-white dark:bg-white/[0.02] border-stone-200 dark:border-white/[0.08]'
+                      : 'bg-stone-50 dark:bg-white/[0.01] border-stone-200 dark:border-white/[0.06] opacity-70'
                   }`}
                 >
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 text-slate-600 dark:text-slate-300">
-                        Node 0{i + 1}
-                      </span>
-                      {node.status === 'completed' ? (
+                      <span className="mono-label text-[9px] text-stone-400 dark:text-stone-500">Node 0{i + 1}</span>
+                      {done ? (
                         <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                      ) : node.status === 'active' ? (
-                        <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 dark:bg-indigo-400 animate-ping" />
+                      ) : active ? (
+                        <span className="relative flex h-2.5 w-2.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-60" />
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
+                        </span>
                       ) : (
-                        <Lock className="w-3.5 h-3.5 text-slate-400 dark:text-slate-600" />
+                        <Lock className="w-3.5 h-3.5 text-stone-400 dark:text-stone-600" />
                       )}
                     </div>
-                    <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mb-1.5">{node.title}</h4>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">{node.type}</p>
+                    <h4 className={`text-sm font-semibold mb-1 ${active ? 'text-stone-900 dark:text-white' : 'text-stone-800 dark:text-stone-200'}`}>
+                      {node.title}
+                    </h4>
+                    <p className="mono-label text-[9px] text-stone-400 dark:text-stone-500">{node.type}</p>
                   </div>
-
-                  <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/60">
+                  <div className="mt-4 pt-3 border-t border-stone-200 dark:border-white/[0.06]">
                     <span
-                      className={`text-[10px] font-semibold ${
-                        node.status === 'completed'
-                          ? 'text-emerald-700 dark:text-emerald-400'
-                          : node.status === 'active'
-                          ? 'text-indigo-700 dark:text-indigo-300 font-bold'
-                          : 'text-slate-400 dark:text-slate-500'
+                      className={`mono-label text-[9px] ${
+                        active
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : done
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : 'text-stone-400 dark:text-stone-500'
                       }`}
                     >
                       {node.tag}
                     </span>
                   </div>
-                </div>
-              </div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
 
-          {/* Interactive Adaptation Simulation */}
-          <div className="mt-6 p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+          {/* Adaptation callout */}
+          <div className="mt-2 p-4 rounded-xl bg-stone-50 dark:bg-white/[0.02] border border-stone-200 dark:border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-600/30 border border-indigo-200 dark:border-indigo-500/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 flex-shrink-0">
-                <RefreshCw className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                <RefreshCw className="w-4.5 h-4.5" />
               </div>
               <div>
-                <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Dynamic AI Graph Adaptation</p>
-                <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400">
-                  Ready to test your knowledge or customize your own path?
+                <p className="text-sm font-semibold text-stone-900 dark:text-white">The graph re-weights as you go</p>
+                <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
+                  Struggle with a concept and reinforcement nodes appear. Master it early and the path accelerates.
                 </p>
               </div>
             </div>
-            <Link to="/onboarding">
+            <Link to="/onboarding" className="shrink-0">
               <Button variant="primary" size="sm" icon={ArrowRight}>
-                Create Personalized Roadmap
+                Chart my roadmap
               </Button>
             </Link>
           </div>

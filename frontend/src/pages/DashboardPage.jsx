@@ -1,310 +1,409 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useLearner } from '../context/LearnerContext';
-import { Button, GlassCard, Badge } from '../components/ui';
-import { 
-  Sparkles, 
-  ArrowRight, 
-  Play, 
-  CheckCircle2, 
-  Clock, 
-  TrendingUp, 
-  Award, 
-  Bot, 
-  GitBranch, 
-  Layers, 
-  BookOpen, 
-  ChevronRight, 
+import { Button, GlassCard, Badge, Eyebrow, ProgressBar, ProgressRing } from '../components/ui';
+import { fadeUp, staggerContainer } from '../utils/motion';
+import { IMAGERY } from '../utils/media';
+import {
+  ArrowRight,
+  Play,
+  CheckCircle2,
+  Clock,
+  Award,
+  GitBranch,
+  Target,
+  ChevronRight,
   Flame,
-  Bookmark
+  Gauge,
+  Compass,
+  Activity,
+  MessageSquare,
+  X,
+  Zap,
+  CircleDashed,
 } from 'lucide-react';
 
-export function DashboardPage() {
-  const { profile, goal, path, roadmap, roadmapProgressPercentage, skills, resources, milestones, recentEvents, dismissAdaptationBanner, openAssistant } = useLearner();
-  const navigate = useNavigate();
+const MotionDiv = motion.div;
 
-  const activePhase = path?.phases?.find(p => p.status === 'in_progress') || path?.phases?.[0] || { title: "Foundations & Vector Architecture", nodes: [] };
-  const activeNode = activePhase?.nodes?.find(n => n.status === 'in_progress') || activePhase?.nodes?.[0] || { title: "Vector Search Deep Dive with pgvector & Qdrant", description: "Hands-on implementation of HNSW index tuning and hybrid lexical + semantic search.", estimatedMinutes: 90 };
+export function DashboardPage() {
+  const {
+    profile,
+    goal,
+    path,
+    skills,
+    milestones,
+    recentEvents,
+    dismissAdaptationBanner,
+    openAssistant,
+  } = useLearner();
+
+  const phases = path?.phases || [];
+  const activePhase =
+    phases.find((p) => p.status === 'in_progress') || phases[0] || { title: 'Foundations & Vector Architecture', nodes: [] };
+  const activeNode =
+    activePhase?.nodes?.find((n) => n.status === 'in_progress') ||
+    activePhase?.nodes?.[0] || {
+      title: 'Vector Search Deep Dive with pgvector & Qdrant',
+      description: 'Hands-on implementation of HNSW index tuning and hybrid lexical + semantic search.',
+      estimatedMinutes: 90,
+    };
+
+  const phaseIndex = Math.max(0, phases.findIndex((p) => p.id === activePhase.id));
+  const totalPhases = phases.length || 3;
+  const doneNodes = (activePhase.nodes || []).filter((n) => n.status === 'completed').length;
+  const totalNodes = (activePhase.nodes || []).length || 1;
+  const phaseProgress = activePhase.progress ?? Math.round((doneNodes / totalNodes) * 100);
+
+  // Skill gaps = the distance between current mastery and target, largest first.
+  const skillGaps = [...(skills || [])]
+    .map((s) => ({ ...s, gap: Math.max(0, (s.target ?? 100) - s.mastery) }))
+    .sort((a, b) => b.gap - a.gap);
+
+  const today = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+
+  const heroStats = [
+    { label: 'Path Complete', value: `${path?.overallProgress ?? 45}%`, icon: Gauge },
+    { label: 'Hours Left', value: `${path?.estimatedHoursLeft ?? 42}`, icon: Clock },
+    { label: 'Streak', value: '14d', icon: Flame },
+    { label: 'This Week', value: '8/14h', icon: Zap },
+  ];
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* Top Welcome Banner */}
-      <div className="relative rounded-3xl bg-gradient-to-r from-indigo-900/90 via-indigo-950/80 to-slate-900 dark:from-indigo-950/90 dark:via-slate-900 dark:to-slate-900 border border-indigo-500/30 p-6 sm:p-8 overflow-hidden shadow-2xl text-white">
-        <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-cyan-500/15 to-transparent pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Badge variant="cyan" size="sm">
-                <Flame className="w-3.5 h-3.5 text-amber-400" /> Active Goal
-              </Badge>
-              <span className="text-xs text-slate-300">Target Role: <strong className="text-white">{goal?.targetRole || "AI Systems Engineer"}</strong></span>
+    <MotionDiv variants={staggerContainer(0.07)} initial="hidden" animate="show" className="space-y-6 pb-16">
+      {/* ============================================================ 1 · HERO */}
+      <MotionDiv variants={fadeUp} className="relative overflow-hidden rounded-2xl border border-stone-200 dark:border-white/[0.08] bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md">
+        <img
+          src={IMAGERY.dashboardBackdrop}
+          alt="Developer workspace with multiple monitors"
+          className="absolute inset-0 h-full w-full object-cover opacity-[0.07] dark:opacity-[0.18]"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/95 to-white/70 dark:from-[#121214] dark:via-[#121214]/95 dark:to-[#121214]/70" />
+        <div className="absolute inset-0 bg-grid opacity-[0.5] dark:opacity-100 pointer-events-none" />
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500" />
+        <div className="relative p-6 sm:p-8">
+          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+            <div className="min-w-0">
+              <Eyebrow icon={Compass} className="mb-3">Mission Briefing · {today}</Eyebrow>
+              <h1 className="font-display text-2xl sm:text-[32px] font-bold tracking-tight text-stone-900 dark:text-white leading-tight">
+                Welcome back, {profile?.name?.split(' ')[0] || 'Aman'}.
+              </h1>
+              <p className="mt-2 text-sm text-stone-600 dark:text-stone-400 max-w-2xl leading-relaxed">
+                You&apos;re building toward{' '}
+                <span className="text-stone-900 dark:text-white font-semibold">{goal?.targetRole || 'AI Systems Engineer'}</span>. Current
+                mission: <span className="text-amber-600 dark:text-amber-400 font-medium">{goal?.title || activePhase.title}</span>.
+              </p>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-display">
-              Welcome back, {profile?.name || "Aman"}!
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-200 max-w-2xl mt-1.5 leading-relaxed">
-              You are in <span className="text-cyan-300 font-semibold">{activePhase.title}</span>. Your next high-leverage step is to complete the interactive vector search module.
-            </p>
+            <div className="flex items-center gap-2.5 shrink-0">
+              <Button
+                variant="secondary"
+                size="md"
+                icon={MessageSquare}
+                onClick={() => openAssistant('Review my active roadmap progress and suggest the next high-impact concept to study.')}
+              >
+                Ask Coach
+              </Button>
+              <Link to="/dashboard/learning-path">
+                <Button variant="primary" size="md" icon={GitBranch}>
+                  Open Path
+                </Button>
+              </Link>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Link to="/dashboard/learning-path">
-              <Button variant="primary" size="md" icon={GitBranch}>
-                Explore Learning Path & Resources
-              </Button>
-            </Link>
+          {/* Inline stat rail */}
+          <div className="mt-7 grid grid-cols-2 sm:grid-cols-4 divide-x divide-stone-200 dark:divide-white/[0.08] border-t border-stone-200 dark:border-white/[0.08] pt-5">
+            {heroStats.map((s) => (
+              <div key={s.label} className="px-4 first:pl-0">
+                <span className="mono-label text-stone-400 dark:text-stone-500 flex items-center gap-1.5">
+                  <s.icon className="w-3 h-3" />
+                  {s.label}
+                </span>
+                <div className="mt-1.5 font-display text-xl sm:text-2xl font-semibold tabular-nums text-stone-900 dark:text-white">
+                  {s.value}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+      </MotionDiv>
 
-      {/* AI Path Adaptation Notice */}
+      {/* ================================================ Adaptation banner (conditional) */}
       {path?.pathAdaptationBanner?.visible && (
-        <div className="p-4 rounded-2xl bg-indigo-50/80 dark:bg-gradient-to-r dark:from-indigo-950/80 dark:to-purple-950/60 border border-indigo-200 dark:border-indigo-500/40 flex items-start justify-between gap-4 animate-in fade-in">
+        <MotionDiv
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-xl border border-amber-500/30 bg-amber-500/[0.06] p-4 flex items-start justify-between gap-4"
+        >
           <div className="flex items-start gap-3">
-            <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-600/30 text-indigo-600 dark:text-cyan-400 mt-0.5 border border-indigo-200 dark:border-indigo-500/30">
-              <Sparkles className="w-5 h-5" />
+            <div className="mt-0.5 w-8 h-8 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <Activity className="w-4 h-4" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white">{path.pathAdaptationBanner.title}</h4>
-                <Badge variant="cyan" size="sm">AI Re-Weighted</Badge>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="text-sm font-semibold text-stone-900 dark:text-white">{path.pathAdaptationBanner.title}</h4>
+                <Badge variant="amber" size="sm">Path re-weighted</Badge>
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+              <p className="text-xs text-stone-600 dark:text-stone-400 mt-1 leading-relaxed max-w-2xl">
                 {path.pathAdaptationBanner.message}
               </p>
             </div>
           </div>
           <button
             onClick={dismissAdaptationBanner}
-            className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-800/80 hover:bg-slate-300 dark:hover:bg-slate-700 transition"
+            className="shrink-0 p-1.5 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/[0.06] transition"
+            aria-label="Dismiss"
           >
-            Dismiss
+            <X className="w-4 h-4" />
           </button>
-        </div>
+        </MotionDiv>
       )}
 
-      {/* Main Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Next Action, Active Path & Integrated Resources */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Next Recommended Action Card */}
-          <GlassCard className="border-indigo-500/30 p-6">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
-              <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Recommended Next Action
+      {/* ============================================================ Main grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* ---------------------------------------------------- Left column */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* 2 · CURRENT PROJECT */}
+          <MotionDiv variants={fadeUp}>
+            <GlassCard hoverEffect={false} className="p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <Eyebrow icon={Target}>Current Project · Phase {phaseIndex + 1} of {totalPhases}</Eyebrow>
+                  <h3 className="mt-3 font-display text-xl font-semibold text-stone-900 dark:text-white">{activePhase.title}</h3>
+                </div>
+                <img
+                  src={IMAGERY.projectCard}
+                  alt="Code editor on a developer workstation"
+                  loading="lazy"
+                  className="hidden sm:block w-24 h-16 object-cover rounded-lg border border-stone-200 dark:border-white/10 opacity-90"
+                />
+                <Link
+                  to="/dashboard/learning-path"
+                  className="text-xs font-medium text-stone-500 hover:text-amber-600 dark:hover:text-amber-400 flex items-center gap-1 transition"
+                >
+                  Full roadmap <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+              {activePhase.description && (
+                <p className="mt-1.5 text-sm text-stone-600 dark:text-stone-400 max-w-2xl leading-relaxed">
+                  {activePhase.description}
+                </p>
+              )}
+              <div className="mt-5 flex items-center gap-4">
+                <ProgressBar value={phaseProgress} className="flex-1" showValue size="lg" />
+                <span className="mono-label text-stone-400 dark:text-stone-500 whitespace-nowrap">
+                  {doneNodes}/{totalNodes} steps
                 </span>
               </div>
-              <Badge variant="primary" size="sm">Priority 1</Badge>
-            </div>
+            </GlassCard>
+          </MotionDiv>
 
-            <div className="py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <span className="text-xs font-semibold text-indigo-600 dark:text-cyan-400">{activePhase.title}</span>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-0.5">
-                  {activeNode?.title}
-                </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 max-w-xl">
-                  {activeNode?.description}
-                </p>
-                <div className="flex items-center gap-4 mt-3 text-xs text-slate-500 dark:text-slate-400">
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" /> ~{activeNode?.estimatedMinutes || 45} mins
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Layers className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" /> High-Dimensional Vectors
-                  </span>
-                </div>
+          {/* 3 · YOUR NEXT MOVE */}
+          <MotionDiv variants={fadeUp}>
+            <div className="relative overflow-hidden rounded-xl border border-amber-500/40 dark:border-amber-500/30 bg-amber-500/[0.04] p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-60" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+                </span>
+                <Eyebrow>Your Next Move</Eyebrow>
               </div>
-
-              <Link to="/dashboard/learning-path">
-                <Button variant="accent" size="md" icon={Play} className="whitespace-nowrap shadow-cyan-500/20">
-                  Continue Node
-                </Button>
-              </Link>
-            </div>
-          </GlassCard>
-
-          {/* Current Learning Path Phase Overview */}
-          <GlassCard className="p-6">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
-              <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">Active Roadmap Breakdown</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Phase 1 of 3: Foundations & Vector Architecture</p>
-              </div>
-              <Link to="/dashboard/learning-path" className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold flex items-center gap-1">
-                Interactive Roadmap <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            <div className="py-4 space-y-3">
-              {activePhase.nodes?.map((node, i) => (
-                <div
-                  key={node.id}
-                  className={`p-3.5 rounded-xl border flex items-center justify-between transition ${
-                    node.status === 'completed'
-                      ? 'bg-emerald-50/60 dark:bg-slate-900/40 border-emerald-300 dark:border-emerald-500/30'
-                      : node.status === 'in_progress'
-                      ? 'bg-indigo-50/70 dark:bg-indigo-950/40 border-indigo-300 dark:border-indigo-500/40 ring-1 ring-indigo-500/30'
-                      : 'bg-slate-50 dark:bg-slate-950/30 border-slate-200 dark:border-slate-800/80 text-slate-500'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold ${
-                      node.status === 'completed'
-                        ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300'
-                        : node.status === 'in_progress'
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-500'
-                    }`}>
-                      {node.status === 'completed' ? <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400" /> : `0${i+1}`}
-                    </div>
-                    <div>
-                      <h4 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white">{node.title}</h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 capitalize">{node.type} • {node.status.replace('_', ' ')}</p>
-                    </div>
+              <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-5">
+                <div className="min-w-0">
+                  <h3 className="font-display text-lg sm:text-xl font-semibold text-stone-900 dark:text-white">
+                    {activeNode?.title}
+                  </h3>
+                  <p className="mt-1.5 text-sm text-stone-600 dark:text-stone-400 max-w-xl leading-relaxed">
+                    {activeNode?.description}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-4 text-xs text-stone-500 dark:text-stone-400">
+                    <span className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-amber-500" /> ~{activeNode?.estimatedMinutes || 45} min
+                    </span>
+                    {activeNode?.confidenceScore != null && (
+                      <span className="flex items-center gap-1.5">
+                        <Gauge className="w-3.5 h-3.5 text-amber-500" /> {activeNode.confidenceScore}% confidence
+                      </span>
+                    )}
+                    <span className="flex items-center gap-1.5">
+                      <GitBranch className="w-3.5 h-3.5 text-amber-500" /> {activePhase.title}
+                    </span>
                   </div>
-
-                  <Badge
-                    variant={node.status === 'completed' ? 'emerald' : node.status === 'in_progress' ? 'cyan' : 'default'}
-                    size="sm"
-                  >
-                    {node.status === 'completed' ? 'Done' : node.status === 'in_progress' ? 'Active' : 'Queued'}
-                  </Badge>
                 </div>
-              ))}
-            </div>
-          </GlassCard>
-
-          {/* Curated Recommendations */}
-          <GlassCard className="p-6">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">Curated Path Resources</h3>
+                <Link to="/dashboard/learning-path" className="shrink-0">
+                  <Button variant="primary" size="md" icon={Play}>
+                    Continue
+                  </Button>
+                </Link>
               </div>
-              <Link to="/dashboard/learning-path" className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold flex items-center gap-1">
-                View in Path <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
             </div>
+          </MotionDiv>
 
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {resources.slice(0, 2).map((res) => (
-                <div key={res.id} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 transition flex flex-col justify-between">
+          {/* 4 · BUILD QUEUE */}
+          <MotionDiv variants={fadeUp}>
+            <GlassCard hoverEffect={false} className="p-6">
+              <div className="flex items-center justify-between pb-4 mb-2 border-b border-stone-200 dark:border-white/[0.08]">
+                <div>
+                  <Eyebrow>Build Queue</Eyebrow>
+                  <p className="mt-1.5 text-sm text-stone-500 dark:text-stone-400">Steps in your current phase</p>
+                </div>
+                <Badge variant="cyan" size="sm">{totalNodes} steps</Badge>
+              </div>
+              <div className="divide-y divide-stone-100 dark:divide-white/[0.06]">
+                {(activePhase.nodes || []).map((node, i) => {
+                  const done = node.status === 'completed';
+                  const active = node.status === 'in_progress';
+                  return (
+                    <div key={node.id} className="flex items-center justify-between gap-4 py-3.5 group">
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center mono-label text-[11px] shrink-0 border ${
+                            done
+                              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                              : active
+                              ? 'bg-amber-500 border-amber-500 text-stone-950'
+                              : 'bg-stone-50 dark:bg-white/[0.03] border-stone-200 dark:border-white/10 text-stone-400 dark:text-stone-500'
+                          }`}
+                        >
+                          {done ? <CheckCircle2 className="w-4 h-4" /> : active ? <Play className="w-3.5 h-3.5" /> : `0${i + 1}`}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className={`text-sm font-medium truncate ${done ? 'text-stone-400 dark:text-stone-500 line-through' : 'text-stone-900 dark:text-white'}`}>
+                            {node.title}
+                          </h4>
+                          <p className="mono-label text-stone-400 dark:text-stone-500 mt-1">
+                            {node.type} · {node.status.replace('_', ' ')}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant={done ? 'emerald' : active ? 'amber' : 'default'} size="sm">
+                        {done ? 'Done' : active ? 'Active' : 'Queued'}
+                      </Badge>
+                    </div>
+                  );
+                })}
+              </div>
+            </GlassCard>
+          </MotionDiv>
+        </div>
+
+        {/* ---------------------------------------------------- Right column */}
+        <div className="lg:col-span-4 space-y-6">
+          {/* 5 · TRAJECTORY (Roadmap Journey) */}
+          <MotionDiv variants={fadeUp}>
+            <GlassCard hoverEffect={false} className="p-6">
+              <Eyebrow icon={Gauge}>Trajectory</Eyebrow>
+              <div className="mt-4 flex items-center gap-5">
+                <ProgressRing value={path?.overallProgress ?? 45} size={84} stroke={7}>
+                  <span className="font-display text-lg font-bold text-stone-900 dark:text-white tabular-nums">
+                    {path?.overallProgress ?? 45}%
+                  </span>
+                </ProgressRing>
+                <div className="flex-1 space-y-3">
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[11px] font-semibold text-indigo-600 dark:text-cyan-400">{res.type}</span>
-                      <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-300 dark:border-emerald-500/30">
-                        {res.matchScore}% Match
+                    <span className="mono-label text-stone-400 dark:text-stone-500">Phases</span>
+                    <p className="text-sm font-semibold text-stone-900 dark:text-white mt-0.5">
+                      {phaseIndex + 1} of {totalPhases} active
+                    </p>
+                  </div>
+                  <div>
+                    <span className="mono-label text-stone-400 dark:text-stone-500">Remaining</span>
+                    <p className="text-sm font-semibold text-stone-900 dark:text-white mt-0.5">
+                      {path?.estimatedHoursLeft ?? 42} hrs of focused build
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <Link
+                to="/dashboard/progress"
+                className="mt-5 pt-4 border-t border-stone-200 dark:border-white/[0.08] flex items-center justify-between text-xs font-medium text-stone-500 hover:text-amber-600 dark:hover:text-amber-400 transition"
+              >
+                View full progress <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </GlassCard>
+          </MotionDiv>
+
+          {/* 6 · SKILL GAPS */}
+          <MotionDiv variants={fadeUp}>
+            <GlassCard hoverEffect={false} className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <Eyebrow icon={CircleDashed}>Skill Gaps</Eyebrow>
+                <Link to="/dashboard/progress" className="text-xs font-medium text-stone-500 hover:text-amber-600 dark:hover:text-amber-400 transition">
+                  All skills
+                </Link>
+              </div>
+              <div className="space-y-4">
+                {skillGaps.slice(0, 4).map((sk) => (
+                  <div key={sk.id}>
+                    <div className="flex justify-between items-baseline text-xs mb-1.5">
+                      <span className="text-stone-700 dark:text-stone-300 font-medium truncate pr-2">{sk.name}</span>
+                      <span className="mono-label text-stone-400 dark:text-stone-500 tabular-nums shrink-0">
+                        {sk.mastery}<span className="opacity-50">→{sk.target ?? 100}</span>
                       </span>
                     </div>
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-2">{res.title}</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 line-clamp-2">{res.whyRecommended}</p>
+                    <div className="relative w-full h-1.5 rounded-full bg-stone-200 dark:bg-white/[0.08] overflow-hidden">
+                      <div className="h-full rounded-full bg-amber-500" style={{ width: `${sk.mastery}%` }} />
+                      {sk.target != null && (
+                        <span
+                          className="absolute top-1/2 -translate-y-1/2 w-0.5 h-3 bg-stone-400 dark:bg-white/40"
+                          style={{ left: `calc(${sk.target}% - 1px)` }}
+                        />
+                      )}
+                    </div>
                   </div>
+                ))}
+              </div>
+            </GlassCard>
+          </MotionDiv>
 
-                  <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
-                    <span className="text-xs text-slate-500">{res.duration}</span>
-                    <Link to="/dashboard/learning-path">
-                      <Button variant="outline" size="sm">Open Resource</Button>
-                    </Link>
-                  </div>
+          {/* 7 · RECENT ACTIVITY */}
+          <MotionDiv variants={fadeUp}>
+            <GlassCard hoverEffect={false} className="p-6">
+              <Eyebrow icon={Activity}>Recent Activity</Eyebrow>
+              <ol className="mt-4 relative border-l border-stone-200 dark:border-white/[0.10] ml-1 space-y-4">
+                {recentEvents.slice(0, 4).map((ev) => (
+                  <li key={ev.id} className="pl-4 relative">
+                    <span className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-amber-500 ring-4 ring-white dark:ring-[#141416]" />
+                    <p className="text-[13px] text-stone-800 dark:text-stone-200 leading-snug">{ev.title}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="mono-label text-[9px] text-amber-600 dark:text-amber-400/80">{ev.type}</span>
+                      <span className="text-[10px] text-stone-400 dark:text-stone-500">{ev.timestamp}</span>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </GlassCard>
+          </MotionDiv>
+
+          {/* 8 · AI INSIGHT */}
+          <MotionDiv variants={fadeUp}>
+            <div className="rounded-xl border border-stone-200 dark:border-white/[0.08] bg-stone-900 dark:bg-white/[0.03] p-6 relative overflow-hidden">
+              <div className="absolute inset-0 bg-dots opacity-40 dark:opacity-60 pointer-events-none" />
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <span className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center">
+                    <Compass className="w-4 h-4 text-stone-950" />
+                  </span>
+                  <span className="mono-label text-amber-400">HADES Coach</span>
                 </div>
-              ))}
-            </div>
-          </GlassCard>
-        </div>
-
-        {/* Right Col: Overall Progress, Skill Matrix & Checkpoints */}
-        <div className="space-y-6">
-          <GlassCard className="p-6">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4">
-              Roadmap Mastery
-            </h3>
-            <div className="flex items-end justify-between mb-2">
-              <span className="text-3xl font-extrabold text-slate-900 dark:text-white font-display">{path?.overallProgress || 45}%</span>
-              <span className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold">{path?.estimatedHoursLeft || 42} hrs remaining</span>
-            </div>
-            <div className="w-full h-3 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden mb-4">
-              <div
-                className="h-full bg-gradient-to-r from-indigo-500 via-cyan-400 to-emerald-400 transition-all duration-500"
-                style={{ width: `${path?.overallProgress || 45}%` }}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-center text-xs">
-              <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
-                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Phases</span>
-                <strong className="text-slate-900 dark:text-white text-sm">1 / 3 Active</strong>
-              </div>
-              <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
-                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Weekly Goal</span>
-                <strong className="text-emerald-600 dark:text-emerald-400 text-sm">8 / 14 hrs</strong>
+                <p className="text-sm text-stone-300 dark:text-stone-300 leading-relaxed mb-4">
+                  Stuck on a concept or unsure what to build next? Your context-aware coach knows exactly where you are in the path.
+                </p>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="w-full"
+                  icon={MessageSquare}
+                  onClick={() => openAssistant('What is the single highest-impact concept for me to focus on next, given my current phase?')}
+                >
+                  Talk to your coach
+                </Button>
               </div>
             </div>
-          </GlassCard>
-
-          {/* Skill Mastery Snapshot */}
-          <GlassCard className="p-6">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 mb-3">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Skill Mastery</h3>
-              <Link to="/dashboard/progress" className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">
-                Details
-              </Link>
-            </div>
-            <div className="space-y-3">
-              {skills.slice(0, 4).map((sk) => (
-                <div key={sk.id}>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-slate-700 dark:text-slate-300 font-medium">{sk.name}</span>
-                    <span className="text-indigo-600 dark:text-cyan-400 font-semibold">{sk.mastery}%</span>
-                  </div>
-                  <div className="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400"
-                      style={{ width: `${sk.mastery}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </GlassCard>
-
-          {/* Upcoming Milestone */}
-          <GlassCard className="p-6">
-            <div className="flex items-center gap-2 mb-3">
-              <Award className="w-4 h-4 text-amber-500 dark:text-amber-400" />
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Target Checkpoint</h3>
-            </div>
-            <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
-              <div className="flex items-center justify-between mb-1">
-                <Badge variant="amber" size="sm">{milestones[1]?.phase || "Phase 1"}</Badge>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">{milestones[1]?.targetDate || "Aug 26"}</span>
-              </div>
-              <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mt-1">{milestones[1]?.title}</h4>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Requires completing vector search lab and indexing module.</p>
-            </div>
-          </GlassCard>
-
-          {/* AI Coach Callout */}
-          <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/70 dark:to-slate-900 border border-indigo-200 dark:border-indigo-500/30">
-            <div className="flex items-center gap-2.5 mb-2">
-              <Bot className="w-5 h-5 text-indigo-600 dark:text-cyan-400" />
-              <span className="text-sm font-bold text-slate-900 dark:text-white">Need Guidance on a Node?</span>
-            </div>
-            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-3">
-              Ask HADES AI to explain concepts, suggest the best resources, or break down prerequisites.
-            </p>
-            <Button 
-              variant="primary" 
-              size="sm" 
-              className="w-full"
-              onClick={() => openAssistant("Can you review my active roadmap progress and suggest the next high-impact concept to study?")}
-            >
-              Ask AI Coach Now
-            </Button>
-          </div>
+          </MotionDiv>
         </div>
       </div>
-    </div>
+    </MotionDiv>
   );
 }

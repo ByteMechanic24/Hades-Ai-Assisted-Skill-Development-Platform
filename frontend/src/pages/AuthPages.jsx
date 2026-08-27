@@ -1,10 +1,84 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, GlassCard, Badge } from '../components/ui';
+import { Button } from '../components/ui';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
-import { Sparkles, ArrowRight, Lock, Mail, User, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Lock, Mail, User, ShieldCheck, Radar, Quote } from 'lucide-react';
 import { useLearner } from '../context/LearnerContext';
+import { IMAGERY } from '../utils/media';
+import { cn } from '../utils/cn';
 
+/* ---------------------------------------------------------------- Input field */
+function Field({ label, icon: Icon, ...props }) {
+  return (
+    <div>
+      <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1.5">{label}</label>
+      <div className="relative">
+        <Icon className="w-4 h-4 text-stone-400 dark:text-stone-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+        <input
+          {...props}
+          className="w-full bg-stone-50 dark:bg-white/[0.03] border border-stone-200 dark:border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-sm text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 transition"
+        />
+      </div>
+    </div>
+  );
+}
+
+/* --------------------------------------------------------------- Split shell */
+function AuthShell({ image, quote, quoteAuthor, quoteRole, children }) {
+  return (
+    <div className="min-h-screen grid lg:grid-cols-2 text-stone-900 dark:text-stone-100">
+      {/* Imagery panel — real people building software */}
+      <div className="relative hidden lg:block overflow-hidden">
+        <img src={image} alt="A developer at work" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-stone-950/95 via-stone-950/45 to-stone-950/70" />
+        <div className="absolute inset-0 bg-dots opacity-30" />
+
+        <div className="relative h-full flex flex-col justify-between p-10 text-white">
+          <Link to="/" className="inline-flex items-center gap-2.5 w-fit">
+            <span className="w-9 h-9 rounded-lg bg-white flex items-center justify-center">
+              <Radar className="w-[18px] h-[18px] text-amber-500" strokeWidth={2.25} />
+            </span>
+            <span className="flex flex-col leading-none">
+              <span className="font-display text-[15px] font-bold tracking-tight">HADES</span>
+              <span className="mono-label text-[9px] text-white/60 mt-0.5">Mission Control</span>
+            </span>
+          </Link>
+
+          <div className="max-w-md">
+            <Quote className="w-7 h-7 text-amber-400 mb-4" />
+            <p className="font-display text-xl font-medium leading-snug">{quote}</p>
+            <div className="mt-4 flex items-center gap-3">
+              <div className="h-px w-8 bg-amber-400" />
+              <div>
+                <p className="text-sm font-semibold">{quoteAuthor}</p>
+                <p className="mono-label text-[10px] text-white/60 mt-0.5">{quoteRole}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Form panel */}
+      <div className="relative flex items-center justify-center p-6 sm:p-10">
+        <div className="absolute top-6 right-6">
+          <ThemeToggle />
+        </div>
+
+        {/* Mobile brand */}
+        <Link to="/" className="lg:hidden absolute top-6 left-6 inline-flex items-center gap-2">
+          <span className="w-8 h-8 rounded-lg bg-stone-900 dark:bg-white flex items-center justify-center">
+            <Radar className="w-4 h-4 text-amber-400 dark:text-amber-500" strokeWidth={2.25} />
+          </span>
+          <span className="font-display text-sm font-bold tracking-tight">HADES</span>
+        </Link>
+
+        <div className="w-full max-w-sm">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ==================================================================== Sign in */
 export function SignInPage() {
   const navigate = useNavigate();
   const { profile } = useLearner();
@@ -22,97 +96,68 @@ export function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-200">
-      {/* Top right theme toggle */}
-      <div className="absolute top-6 right-6 z-20">
-        <ThemeToggle />
+    <AuthShell
+      image={IMAGERY.authPrimary}
+      quote="I stopped collecting courses and started shipping projects. HADES showed me exactly what to build next."
+      quoteAuthor="A HADES learner"
+      quoteRole="On the path to AI Systems Engineer"
+    >
+      <div className="mb-8">
+        <span className="mono-label text-amber-600 dark:text-amber-400">Welcome back</span>
+        <h1 className="font-display text-2xl font-bold tracking-tight text-stone-900 dark:text-white mt-2">
+          Resume your mission
+        </h1>
+        <p className="text-sm text-stone-500 dark:text-stone-400 mt-1.5">
+          Pick up exactly where your path left off.
+        </p>
       </div>
 
-      {/* Ambient background glows */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500/10 dark:bg-indigo-600/15 rounded-full blur-[140px] pointer-events-none" />
+      <form onSubmit={handleSignIn} className="space-y-4">
+        <Field
+          label="Email address"
+          icon={Mail}
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="name@domain.com"
+          required
+        />
+        <Field
+          label="Password"
+          icon={Lock}
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
+          required
+        />
+        <Button type="submit" variant="primary" size="lg" className="w-full mt-1" isLoading={isLoading} icon={ArrowRight}>
+          Sign in to workspace
+        </Button>
+      </form>
 
-      <div className="w-full max-w-md relative z-10">
-        {/* Brand */}
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-600/30">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-2xl font-black tracking-wider bg-gradient-to-r from-slate-900 via-indigo-600 to-cyan-500 dark:from-white dark:via-indigo-200 dark:to-cyan-400 bg-clip-text text-transparent font-display">
-              HADES
-            </span>
-          </Link>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mt-4">Welcome back</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Sign in to resume your adaptive skill journey</p>
-        </div>
-
-        <GlassCard className="p-6 sm:p-8 border-slate-200 dark:border-slate-800 shadow-2xl">
-          <form onSubmit={handleSignIn} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Email Address</label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-                  placeholder="name@domain.com"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              className="w-full mt-2"
-              isLoading={isLoading}
-              icon={ArrowRight}
-            >
-              Sign In to Workspace
-            </Button>
-          </form>
-
-          {/* Quick Demo Login Pill */}
-          <div className="mt-6 pt-5 border-t border-slate-200 dark:border-slate-800 text-center">
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Hackathon Demo Access</p>
-            <button
-              onClick={handleSignIn}
-              className="w-full py-2.5 px-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 text-xs font-semibold transition flex items-center justify-center gap-2"
-            >
-              <ShieldCheck className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
-              Continue as {profile?.name || "Aman Kumar"} (Sample Profile)
-            </button>
-          </div>
-        </GlassCard>
-
-        <div className="text-center mt-6">
-          <Link to="/sign-up" className="text-xs text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-white transition">
-            Don't have an account? <span className="text-indigo-600 dark:text-indigo-400 font-semibold underline">Sign up here</span>
-          </Link>
-        </div>
+      <div className="mt-6 pt-5 border-t border-stone-200 dark:border-white/[0.08]">
+        <p className="mono-label text-stone-400 dark:text-stone-500 text-center mb-3">Hackathon demo access</p>
+        <button
+          onClick={handleSignIn}
+          className="w-full py-2.5 px-3 rounded-lg bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-sm font-medium transition flex items-center justify-center gap-2"
+        >
+          <ShieldCheck className="w-4 h-4" />
+          Continue as {profile?.name || 'Aman Kumar'}
+        </button>
       </div>
-    </div>
+
+      <p className="text-center mt-6 text-sm text-stone-500 dark:text-stone-400">
+        New here?{' '}
+        <Link to="/sign-up" className="text-amber-600 dark:text-amber-400 font-medium hover:underline">
+          Create an account
+        </Link>
+      </p>
+    </AuthShell>
   );
 }
 
+/* ==================================================================== Sign up */
 export function SignUpPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -125,90 +170,61 @@ export function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-200">
-      <div className="absolute top-6 right-6 z-20">
-        <ThemeToggle />
+    <AuthShell
+      image={IMAGERY.authSecondary}
+      quote="Your goal becomes a project. The project reveals the skills. The gaps become your path."
+      quoteAuthor="The HADES method"
+      quoteRole="Goal → Project → Skills → Mastery"
+    >
+      <div className="mb-8">
+        <span className="mono-label text-amber-600 dark:text-amber-400">Get started</span>
+        <h1 className="font-display text-2xl font-bold tracking-tight text-stone-900 dark:text-white mt-2">
+          Build your path
+        </h1>
+        <p className="text-sm text-stone-500 dark:text-stone-400 mt-1.5">
+          Tell us the role you&apos;re chasing — we&apos;ll chart the route.
+        </p>
       </div>
 
-      <div className="w-full max-w-md relative z-10">
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-600/30">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-2xl font-black tracking-wider bg-gradient-to-r from-slate-900 via-indigo-600 to-cyan-500 dark:from-white dark:via-indigo-200 dark:to-cyan-400 bg-clip-text text-transparent font-display">
-              HADES
-            </span>
-          </Link>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mt-4">Create your account</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Start your autonomous AI skill path today</p>
-        </div>
+      <form onSubmit={handleSignUp} className="space-y-4">
+        <Field
+          label="Full name"
+          icon={User}
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Aman Kumar"
+          required
+        />
+        <Field
+          label="Email address"
+          icon={Mail}
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="aman@example.com"
+          required
+        />
+        <Field
+          label="Password"
+          icon={Lock}
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
+          required
+        />
+        <Button type="submit" variant="primary" size="lg" className="w-full mt-1" icon={ArrowRight}>
+          Start onboarding
+        </Button>
+      </form>
 
-        <GlassCard className="p-6 sm:p-8 border-slate-200 dark:border-slate-800 shadow-2xl">
-          <form onSubmit={handleSignUp} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Full Name</label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-                  placeholder="Aman Kumar"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Email Address</label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-                  placeholder="aman@example.com"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              className="w-full mt-2"
-              icon={ArrowRight}
-            >
-              Begin Path Onboarding
-            </Button>
-          </form>
-        </GlassCard>
-
-        <div className="text-center mt-6">
-          <Link to="/sign-in" className="text-xs text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-white transition">
-            Already have an account? <span className="text-indigo-600 dark:text-indigo-400 font-semibold underline">Sign in here</span>
-          </Link>
-        </div>
-      </div>
-    </div>
+      <p className="text-center mt-6 text-sm text-stone-500 dark:text-stone-400">
+        Already have an account?{' '}
+        <Link to="/sign-in" className="text-amber-600 dark:text-amber-400 font-medium hover:underline">
+          Sign in
+        </Link>
+      </p>
+    </AuthShell>
   );
 }

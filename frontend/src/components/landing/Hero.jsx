@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, Badge } from '../ui';
-import { Sparkles, ArrowRight, GitBranch, Cpu, CheckCircle2, Play, Search, Flame, Wand2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Button } from '../ui';
+import { ArrowRight, GitBranch, Play, Search, Wand2, CornerDownLeft } from 'lucide-react';
 import { useLearner } from '../../context/LearnerContext';
+import { IMAGERY } from '../../utils/media';
+import { fadeUp, staggerContainer } from '../../utils/motion';
 
 export function Hero() {
   const navigate = useNavigate();
@@ -11,15 +14,15 @@ export function Hero() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const suggestedRoles = [
-    "Autonomous AI Agent Engineer",
-    "Enterprise RAG & Search Architect",
-    "Full-Stack LLM Developer",
-    "MLOps & Cloud Native Systems"
+    'Autonomous AI Agent Engineer',
+    'Enterprise RAG & Search Architect',
+    'Full-Stack LLM Developer',
+    'MLOps & Cloud-Native Systems',
   ];
 
   const handleSearchAndGetRoadmap = (e, roleToUse = null) => {
     if (e) e.preventDefault();
-    const query = (roleToUse || searchQuery || "Autonomous AI Systems Engineer").trim();
+    const query = (roleToUse || searchQuery || 'Autonomous AI Systems Engineer').trim();
     if (!query) return;
 
     setIsSubmitting(true);
@@ -32,61 +35,71 @@ export function Hero() {
     }, 450);
   };
 
+  const stats = [
+    { value: 'Goal-first', label: 'Not a course catalog' },
+    { value: 'Agno AI', label: 'Multi-agent reasoner' },
+    { value: 'Prereq graph', label: 'Deterministic ordering' },
+    { value: 'Real-time', label: 'Adapts as you build' },
+  ];
+
   return (
-    <section className="relative pt-36 pb-20 px-6 lg:px-12 overflow-hidden">
-      {/* Glow background spheres */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/10 dark:bg-indigo-600/20 rounded-full blur-[140px] pointer-events-none -z-10" />
-      <div className="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-cyan-500/10 dark:bg-cyan-500/15 rounded-full blur-[120px] pointer-events-none -z-10" />
+    <section className="relative pt-32 pb-16 sm:pt-40 sm:pb-20 px-5 lg:px-8 overflow-hidden">
 
-      <div className="max-w-5xl mx-auto text-center">
-        {/* Hackathon Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-200 dark:border-indigo-500/40 text-indigo-700 dark:text-indigo-300 text-xs font-semibold mb-8 backdrop-blur-md shadow-sm dark:shadow-lg dark:shadow-indigo-950/50">
-          <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-cyan-400 animate-pulse" />
-          <span>Next-Gen AI Personalized Skill Architecture</span>
-          <span className="w-1 h-1 rounded-full bg-slate-400 dark:slate-500"></span>
-          <span className="text-indigo-600 dark:text-cyan-300 font-mono">Scala + Agno AI</span>
-        </div>
 
-        {/* Hero Headline */}
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white font-display leading-[1.1] mb-6">
-          Not just courses. <br />
-          An <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-600 dark:from-cyan-400 dark:via-indigo-300 dark:to-purple-400 bg-clip-text text-transparent">Adaptive AI Brain</span> for your learning path.
-        </h1>
+      <motion.div
+        variants={staggerContainer(0.08)}
+        initial="hidden"
+        animate="show"
+        className="relative max-w-3xl mx-auto text-center"
+      >
+        {/* Eyebrow */}
+        <motion.div variants={fadeUp} className="flex justify-center mb-6">
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-stone-200 dark:border-white/10 bg-white/60 dark:bg-white/[0.03] backdrop-blur">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            <span className="mono-label text-stone-500 dark:text-stone-400">HCLTech Hackathon 2026 · Adaptive skill architecture</span>
+          </span>
+        </motion.div>
 
-        {/* Subtitle */}
-        <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed mb-8">
-          HADES models your skill gaps, generates deterministic prerequisite graphs, curates multi-modal resources, and adapts dynamically as you progress.
-        </p>
+        {/* Headline */}
+        <motion.h1
+          variants={fadeUp}
+          className="font-display text-4xl sm:text-6xl font-bold tracking-tight text-stone-900 dark:text-white leading-[1.05]"
+        >
+          Stop collecting courses.
+          <br />
+          Start shipping <span className="text-amber-500">proof</span>.
+        </motion.h1>
 
-        {/* Direct Search & Get Roadmap Bar */}
-        <div className="max-w-2xl mx-auto mb-8">
+        <motion.p
+          variants={fadeUp}
+          className="mt-6 text-base sm:text-lg text-stone-600 dark:text-stone-400 max-w-2xl mx-auto leading-relaxed"
+        >
+          HADES turns a career goal into a real project, maps the exact skills that project demands, and charts a
+          prerequisite path that adapts as you build — so every hour moves you toward the role, not the certificate.
+        </motion.p>
+
+        {/* Search → roadmap */}
+        <motion.div variants={fadeUp} className="mt-9 max-w-xl mx-auto">
           <form
             onSubmit={handleSearchAndGetRoadmap}
-            className="relative flex items-center p-2 rounded-2xl bg-white/90 dark:bg-slate-900/90 border-2 border-indigo-400/40 dark:border-indigo-500/50 shadow-2xl backdrop-blur-xl focus-within:border-indigo-500 dark:focus-within:border-cyan-400 transition-all duration-300"
+            className="relative flex items-center gap-2 p-2 rounded-xl bg-white dark:bg-[#141416] border border-stone-300 dark:border-white/10 shadow-elev focus-within:border-amber-500 dark:focus-within:border-amber-500 transition-colors"
           >
-            <Search className="w-5 h-5 text-indigo-500 dark:text-cyan-400 ml-3 flex-shrink-0" />
+            <Search className="w-4.5 h-4.5 text-stone-400 dark:text-stone-500 ml-2.5 shrink-0" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search any skill or role to get your roadmap (e.g. AI Agent Engineer)..."
-              className="w-full bg-transparent px-3.5 py-2.5 text-sm sm:text-base text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none"
+              placeholder="Name the role you're chasing…"
+              className="w-full bg-transparent px-1 py-2 text-sm sm:text-base text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none"
             />
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              isLoading={isSubmitting}
-              icon={Sparkles}
-              className="flex-shrink-0 shadow-lg shadow-indigo-600/30"
-            >
-              Get Roadmap
+            <Button type="submit" variant="primary" size="md" isLoading={isSubmitting} icon={ArrowRight} className="shrink-0">
+              Build path
             </Button>
           </form>
 
-          {/* Quick Suggested Roles Chips */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
-            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Popular roadmaps:</span>
+          {/* Suggested roles */}
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
+            <span className="mono-label text-stone-400 dark:text-stone-500">Popular:</span>
             {suggestedRoles.map((role) => (
               <button
                 key={role}
@@ -95,48 +108,77 @@ export function Hero() {
                   setSearchQuery(role);
                   handleSearchAndGetRoadmap(null, role);
                 }}
-                className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 hover:text-indigo-600 dark:hover:text-cyan-300 border border-slate-200 dark:border-slate-700/80 transition flex items-center gap-1"
+                className="group text-xs px-2.5 py-1 rounded-full bg-stone-100 dark:bg-white/[0.03] text-stone-600 dark:text-stone-300 hover:text-amber-700 dark:hover:text-amber-300 border border-stone-200 dark:border-white/10 hover:border-amber-500/40 transition flex items-center gap-1.5"
               >
-                <GitBranch className="w-3 h-3 text-indigo-500 dark:text-cyan-400" />
+                <GitBranch className="w-3 h-3 text-stone-400 group-hover:text-amber-500 transition-colors" />
                 {role}
               </button>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        {/* Secondary Alternative CTAs */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-          <Link to="/onboarding">
-            <Button size="lg" variant="secondary" icon={Wand2} className="w-full sm:w-auto">
-              Custom Path Wizard
+        {/* Secondary CTAs */}
+        <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
+          <Link to="/onboarding" className="w-full sm:w-auto">
+            <Button size="md" variant="secondary" icon={Wand2} className="w-full">
+              Custom path wizard
             </Button>
           </Link>
-          <Link to="/dashboard">
-            <Button size="lg" variant="ghost" icon={Play} className="w-full sm:w-auto border border-slate-300 dark:border-slate-800">
-              Explore Live Workspace (Dashboard)
+          <Link to="/dashboard" className="w-full sm:w-auto">
+            <Button size="md" variant="ghost" icon={Play} className="w-full border border-stone-200 dark:border-white/10">
+              Explore the workspace
             </Button>
           </Link>
-        </div>
+        </motion.div>
+      </motion.div>
 
-        {/* Social Proof / Stats Strip */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 rounded-2xl bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 backdrop-blur-md max-w-4xl mx-auto text-left shadow-lg dark:shadow-none">
-          <div className="p-3 border-r border-slate-200 dark:border-slate-800/80 last:border-none">
-            <div className="text-2xl font-bold text-slate-900 dark:text-white font-display">100%</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Interactive Roadmaps</div>
+      {/* Framed real workspace image — a developer building, not AI clip-art */}
+      <motion.div
+        variants={fadeUp}
+        initial="hidden"
+        animate="show"
+        transition={{ delay: 0.2 }}
+        className="relative max-w-5xl mx-auto mt-16"
+      >
+        <div className="relative rounded-2xl overflow-hidden border border-stone-200 dark:border-white/[0.08] bg-stone-100 dark:bg-[#101013] shadow-elev">
+          {/* window chrome */}
+          <div className="flex items-center gap-1.5 px-4 h-10 border-b border-stone-200 dark:border-white/[0.08] bg-white/80 dark:bg-white/[0.02]">
+            <span className="w-2.5 h-2.5 rounded-full bg-stone-300 dark:bg-white/15" />
+            <span className="w-2.5 h-2.5 rounded-full bg-stone-300 dark:bg-white/15" />
+            <span className="w-2.5 h-2.5 rounded-full bg-stone-300 dark:bg-white/15" />
+            <span className="mono-label text-stone-400 dark:text-stone-500 ml-3">hades — mission control</span>
           </div>
-          <div className="p-3 border-r border-slate-200 dark:border-slate-800/80 last:border-none">
-            <div className="text-2xl font-bold text-indigo-600 dark:text-cyan-400 font-display">Agno AI</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Multi-Agent Reasoner</div>
-          </div>
-          <div className="p-3 border-r border-slate-200 dark:border-slate-800/80 last:border-none">
-            <div className="text-2xl font-bold text-purple-600 dark:text-indigo-400 font-display">Curated</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Multi-Modal Resources</div>
-          </div>
-          <div className="p-3">
-            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 font-display">Real-Time</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Adaptive Path Updates</div>
+          <div className="relative aspect-[16/8] overflow-hidden">
+            <img
+              src={IMAGERY.heroWorkspace}
+              alt="A developer building software at a multi-monitor workstation"
+              className="absolute inset-0 w-full h-full object-cover"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-stone-950/70 via-transparent to-transparent" />
+            <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4">
+              <div>
+                <span className="mono-label text-amber-400">Now building</span>
+                <p className="text-white font-display font-semibold text-sm sm:text-base mt-1">
+                  Retrieval-augmented agent · Phase 2 of 4
+                </p>
+              </div>
+              <span className="hidden sm:inline-flex mono-label text-[10px] text-white/70 border border-white/20 rounded px-2 py-1 backdrop-blur">
+                45% complete
+              </span>
+            </div>
           </div>
         </div>
+      </motion.div>
+
+      {/* Stat rail */}
+      <div className="relative max-w-5xl mx-auto mt-10 grid grid-cols-2 md:grid-cols-4 divide-x divide-stone-200 dark:divide-white/[0.08] border-t border-stone-200 dark:border-white/[0.08] pt-6">
+        {stats.map((s) => (
+          <div key={s.label} className="px-4 text-center md:text-left first:pl-0">
+            <div className="font-display text-lg sm:text-xl font-semibold text-stone-900 dark:text-white">{s.value}</div>
+            <div className="mono-label text-stone-400 dark:text-stone-500 mt-1">{s.label}</div>
+          </div>
+        ))}
       </div>
     </section>
   );

@@ -8,7 +8,7 @@ import { Footer } from '../components/landing/Footer';
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 selection:bg-indigo-500 selection:text-white transition-colors duration-200">
+    <div className="min-h-screen text-stone-900 dark:text-stone-100 selection:bg-amber-400 selection:text-black transition-colors duration-200">
       <LandingNavbar />
       <Hero />
       <PathVisualizerDemo />

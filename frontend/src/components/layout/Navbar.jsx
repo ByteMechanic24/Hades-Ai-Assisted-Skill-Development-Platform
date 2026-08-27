@@ -1,91 +1,96 @@
-import React, { useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, NavLink } from 'react-router-dom';
 import { useLearner } from '../../context/LearnerContext';
-import { Button, Badge } from '../ui';
 import { ThemeToggle } from '../ui/ThemeToggle';
-import { 
-  Bot, 
-  Search, 
-  Bell, 
-  Sparkles, 
-  ChevronDown, 
+import {
+  Bell,
+  ChevronDown,
   LayoutDashboard,
   GitBranch,
   TrendingUp,
   Award,
   LogOut,
   Target,
-  User
+  User,
+  Radar,
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
+const navItems = [
+  { name: 'Dashboard', short: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, badge: null },
+  { name: 'Learning Path', short: 'Path', path: '/dashboard/learning-path', icon: GitBranch, badge: 'ADAPTIVE' },
+  { name: 'Progress', short: 'Progress', path: '/dashboard/progress', icon: TrendingUp, badge: null },
+];
+
+/** Small hook: close a popover when clicking outside or pressing Escape. */
+function useDismiss(onDismiss) {
+  const ref = useRef(null);
+  useEffect(() => {
+    function onDoc(e) {
+      if (ref.current && !ref.current.contains(e.target)) onDismiss();
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') onDismiss();
+    }
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [onDismiss]);
+  return ref;
+}
+
 export function Navbar() {
-  const { profile, goal, path, recentEvents } = useLearner();
+  const { profile, recentEvents } = useLearner();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const navigate = useNavigate();
-
-  const navItems = [
-    { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard, badge: null },
-    { name: "Learning Path & Resources", path: "/dashboard/learning-path", icon: GitBranch, badge: "ADAPTIVE" },
-    { name: "Progress & Skills", path: "/dashboard/progress", icon: TrendingUp, badge: null }
-  ];
+  const notifRef = useDismiss(() => setShowNotifications(false));
+  const profileRef = useDismiss(() => setShowProfileMenu(false));
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-[#0B0F19]/80 dark:bg-[#0B0F19]/80 bg-white/80 backdrop-blur-2xl border-b border-slate-800/80 dark:border-slate-800/80 border-slate-200 shadow-2xl transition-all duration-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
-        {/* Left: Brand Logo */}
-        <Link to="/" className="flex items-center gap-3 group flex-shrink-0">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-600/30 group-hover:scale-105 transition duration-200">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-lg sm:text-xl font-black tracking-wider bg-gradient-to-r from-slate-900 via-indigo-600 to-cyan-500 dark:from-white dark:via-indigo-200 dark:to-cyan-400 bg-clip-text text-transparent font-display">
-                HADES
-              </span>
-            </div>
-            <span className="block text-[9px] uppercase font-bold tracking-widest text-indigo-500 dark:text-indigo-400">
-              AI Learning Engine
+    <header className="sticky top-0 z-50 w-full glass-panel">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        {/* Brand */}
+        <Link to="/" className="flex items-center gap-2.5 group shrink-0">
+          <span className="relative w-9 h-9 rounded-lg bg-stone-900 dark:bg-white flex items-center justify-center overflow-hidden">
+            <Radar className="w-[18px] h-[18px] text-amber-400 dark:text-amber-500" strokeWidth={2.25} />
+          </span>
+          <span className="flex flex-col leading-none">
+            <span className="font-display text-[15px] font-bold tracking-tight text-stone-900 dark:text-white">
+              HADES
             </span>
-          </div>
+            <span className="mono-label text-[9px] text-stone-400 dark:text-stone-500 mt-0.5">
+              Mission Control
+            </span>
+          </span>
         </Link>
 
-        {/* Center: Glassmorphism Sticky CTA Pill Navigation Buttons */}
-        <nav className="flex items-center gap-1.5 sm:gap-2 p-1.5 rounded-2xl bg-slate-100/80 dark:bg-[#0B101E]/60 backdrop-blur-2xl backdrop-saturate-150 border border-slate-200 dark:border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.15)] dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.45)] overflow-x-auto max-w-full">
+        {/* Center nav */}
+        <nav className="flex items-center gap-1 p-1 rounded-xl border border-stone-200 dark:border-white/[0.08] bg-stone-50/60 dark:bg-white/[0.03]">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === "/dashboard"}
+              end={item.path === '/dashboard'}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 select-none group relative whitespace-nowrap",
+                  'relative flex items-center gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-lg text-[13px] font-medium transition-colors duration-200 whitespace-nowrap',
                   isActive
-                    ? "bg-gradient-to-r from-indigo-600/40 via-purple-600/30 to-indigo-600/40 dark:text-white text-indigo-900 border border-indigo-500/50 shadow-md shadow-indigo-500/10"
-                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/[0.06]"
+                    ? 'bg-white dark:bg-white/[0.08] text-stone-900 dark:text-white shadow-sm'
+                    : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white'
                 )
               }
             >
               {({ isActive }) => (
                 <>
                   <item.icon
-                    className={cn(
-                      "w-4 h-4 transition duration-200",
-                      isActive ? "text-indigo-600 dark:text-indigo-300 group-hover:scale-110" : "text-slate-400 dark:text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200"
-                    )}
+                    className={cn('w-4 h-4 shrink-0', isActive ? 'text-amber-500' : 'text-stone-400 dark:text-stone-500')}
                   />
                   <span className="hidden sm:inline">{item.name}</span>
-                  <span className="sm:hidden">{item.name.split(' ')[0]}</span>
                   {item.badge && (
-                    <span
-                      className={cn(
-                        "text-[9px] px-1.5 py-0.2 rounded-md font-extrabold uppercase tracking-wider border hidden md:inline",
-                        isActive
-                          ? "bg-indigo-500/20 text-indigo-700 dark:text-indigo-200 border-indigo-400/40 shadow-sm"
-                          : "bg-slate-200 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700/60"
-                      )}
-                    >
+                    <span className="mono-label text-[8px] text-amber-600 dark:text-amber-400 border border-amber-500/30 rounded px-1 py-0.5 hidden lg:inline">
                       {item.badge}
                     </span>
                   )}
@@ -95,34 +100,41 @@ export function Navbar() {
           ))}
         </nav>
 
-        {/* Right: Theme Toggle, Notifications & Profile Dropdown */}
-        <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
-          {/* Theme Toggle Button (Light / Dark mode switcher) */}
+        {/* Right cluster */}
+        <div className="flex items-center gap-2 shrink-0">
           <ThemeToggle />
 
           {/* Notifications */}
-          <div className="relative">
+          <div className="relative" ref={notifRef}>
             <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800 transition"
+              onClick={() => {
+                setShowNotifications((v) => !v);
+                setShowProfileMenu(false);
+              }}
+              className="relative p-2 rounded-lg text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/[0.06] border border-transparent hover:border-stone-200 dark:hover:border-white/10 transition"
+              aria-label="Event log"
             >
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-500"></span>
+              <Bell className="w-[18px] h-[18px]" />
+              {recentEvents.length > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 ring-2 ring-[var(--bg-main)]" />
+              )}
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
-                  <span className="text-xs font-semibold text-slate-900 dark:text-white">Event Log & Telemetry</span>
-                  <span className="text-[10px] text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-950/80 px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-500/30">Realtime</span>
+              <div className="absolute right-0 mt-2 w-80 rounded-xl bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 shadow-elev p-3 z-50 animate-fade-in">
+                <div className="flex items-center justify-between pb-2.5 mb-1 border-b border-stone-200 dark:border-white/10">
+                  <span className="mono-label text-stone-500 dark:text-stone-400">Event Log</span>
+                  <span className="mono-label text-[9px] text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" /> Live
+                  </span>
                 </div>
-                <div className="mt-3 space-y-2.5 max-h-64 overflow-y-auto">
-                  {recentEvents.map(ev => (
-                    <div key={ev.id} className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/60 text-xs">
-                      <p className="font-medium text-slate-800 dark:text-slate-200">{ev.title}</p>
-                      <div className="flex items-center justify-between mt-1 text-[10px] text-slate-500">
-                        <span className="font-mono text-indigo-600 dark:text-indigo-400">{ev.type}</span>
-                        <span>{ev.timestamp}</span>
+                <div className="mt-2 space-y-1 max-h-72 overflow-y-auto">
+                  {recentEvents.map((ev) => (
+                    <div key={ev.id} className="p-2.5 rounded-lg hover:bg-stone-50 dark:hover:bg-white/[0.04] transition">
+                      <p className="text-[13px] font-medium text-stone-800 dark:text-stone-200 leading-snug">{ev.title}</p>
+                      <div className="flex items-center justify-between mt-1.5">
+                        <span className="mono-label text-[9px] text-amber-600 dark:text-amber-400/80">{ev.type}</span>
+                        <span className="text-[10px] text-stone-400 dark:text-stone-500">{ev.timestamp}</span>
                       </div>
                     </div>
                   ))}
@@ -131,65 +143,68 @@ export function Navbar() {
             )}
           </div>
 
-          {/* Profile Dropdown */}
-          <div className="relative">
+          {/* Profile */}
+          <div className="relative" ref={profileRef}>
             <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="flex items-center gap-1.5 sm:gap-2 p-1 pl-1.5 pr-2 rounded-xl bg-slate-100 dark:bg-slate-900/60 hover:bg-slate-200 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800 transition"
+              onClick={() => {
+                setShowProfileMenu((v) => !v);
+                setShowNotifications(false);
+              }}
+              className="flex items-center gap-1.5 p-1 pr-2 rounded-lg border border-stone-200 dark:border-white/10 hover:bg-stone-100 dark:hover:bg-white/[0.06] transition"
             >
               <img
                 src={profile.avatar}
                 alt={profile.name}
-                className="w-8 h-8 rounded-xl object-cover ring-1 ring-indigo-500/40"
+                className="w-7 h-7 rounded-md object-cover"
               />
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              <ChevronDown className="w-3.5 h-3.5 text-stone-400" />
             </button>
 
             {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95">
-                <div className="p-2.5 border-b border-slate-200 dark:border-slate-800">
-                  <p className="text-xs font-semibold text-slate-900 dark:text-white">{profile.name}</p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{profile.email}</p>
+              <div className="absolute right-0 mt-2 w-60 rounded-xl bg-white dark:bg-[#141416] border border-stone-200 dark:border-white/10 shadow-elev p-1.5 z-50 animate-fade-in">
+                <div className="flex items-center gap-3 p-2.5 mb-1 border-b border-stone-200 dark:border-white/10">
+                  <img src={profile.avatar} alt={profile.name} className="w-9 h-9 rounded-lg object-cover" />
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-semibold text-stone-900 dark:text-white truncate">{profile.name}</p>
+                    <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate">{profile.email}</p>
+                  </div>
                 </div>
-                <div className="p-1 space-y-1">
-                  <Link
-                    to="/dashboard/profile"
-                    onClick={() => setShowProfileMenu(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 rounded-xl transition font-semibold"
-                  >
-                    <User className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
-                    My Profile & Settings
-                  </Link>
-                  <Link
-                    to="/dashboard/progress"
-                    onClick={() => setShowProfileMenu(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 rounded-xl transition"
-                  >
-                    <Award className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
-                    My Skills & Mastery
-                  </Link>
-                  <Link
-                    to="/onboarding"
-                    onClick={() => setShowProfileMenu(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 rounded-xl transition"
-                  >
-                    <Target className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
-                    Reconfigure Goals
-                  </Link>
-                  <Link
-                    to="/sign-in"
-                    onClick={() => setShowProfileMenu(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-xs text-rose-600 dark:text-rose-300 hover:text-rose-700 dark:hover:text-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition"
-                  >
-                    <LogOut className="w-4 h-4 text-rose-500 dark:text-rose-400" />
-                    Sign Out
-                  </Link>
-                </div>
+                <MenuLink to="/dashboard/profile" icon={User} onClick={() => setShowProfileMenu(false)}>
+                  Profile &amp; Settings
+                </MenuLink>
+                <MenuLink to="/dashboard/progress" icon={Award} onClick={() => setShowProfileMenu(false)}>
+                  Skills &amp; Mastery
+                </MenuLink>
+                <MenuLink to="/onboarding" icon={Target} onClick={() => setShowProfileMenu(false)}>
+                  Reconfigure Goal
+                </MenuLink>
+                <div className="my-1 h-px bg-stone-200 dark:bg-white/10" />
+                <MenuLink to="/sign-in" icon={LogOut} danger onClick={() => setShowProfileMenu(false)}>
+                  Sign Out
+                </MenuLink>
               </div>
             )}
           </div>
         </div>
       </div>
     </header>
+  );
+}
+
+function MenuLink({ to, icon: Icon, children, danger, onClick }) {
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      className={cn(
+        'flex items-center gap-2.5 px-2.5 py-2 text-[13px] font-medium rounded-lg transition',
+        danger
+          ? 'text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30'
+          : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/[0.06] hover:text-stone-900 dark:hover:text-white'
+      )}
+    >
+      <Icon className={cn('w-4 h-4', danger ? 'text-rose-500' : 'text-stone-400 dark:text-stone-500')} />
+      {children}
+    </Link>
   );
 }

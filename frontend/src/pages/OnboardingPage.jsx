@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useLearner } from '../context/LearnerContext';
-import { Button, GlassCard, Badge } from '../components/ui';
+import { Button } from '../components/ui';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
-import { 
-  Sparkles, 
-  ArrowRight, 
-  ArrowLeft, 
-  Target, 
-  BookOpen, 
-  Clock, 
-  CheckCircle2, 
-  Cpu, 
-  Layers,
-  Award
+import {
+  ArrowRight,
+  ArrowLeft,
+  Target,
+  CheckCircle2,
+  Radar,
+  Loader2,
+  Sparkles,
+  Check,
+  Plus,
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import { IMAGERY } from '../utils/media';
 
 export function OnboardingPage() {
   const navigate = useNavigate();
@@ -27,39 +27,43 @@ export function OnboardingPage() {
 
   // Form State
   const [formData, setFormData] = useState({
-    targetRole: "Autonomous AI Systems Engineer",
-    customGoal: "Master AI Agent Orchestration & Production LLMOps",
+    targetRole: 'Autonomous AI Systems Engineer',
+    customGoal: 'Master AI Agent Orchestration & Production LLMOps',
     timeframeWeeks: 12,
-    educationLevel: "Undergraduate / Tech Enthusiast",
-    experienceLevel: "Intermediate",
-    interests: ["Generative AI", "Agentic Workflows", "Vector Databases", "FastAPI"],
-    learningFormats: ["Hands-on Projects", "Interactive Labs"],
-    pace: "Accelerated",
-    weeklyHours: 14
+    educationLevel: 'Undergraduate / Tech Enthusiast',
+    experienceLevel: 'Intermediate',
+    interests: ['Generative AI', 'Agentic Workflows', 'Vector Databases', 'FastAPI'],
+    learningFormats: ['Hands-on Projects', 'Interactive Labs'],
+    pace: 'Accelerated',
+    weeklyHours: 14,
   });
 
   const totalSteps = 5;
 
+  const stepMeta = [
+    { n: 1, label: 'Goal', hint: 'What you want' },
+    { n: 2, label: 'Interests', hint: 'What excites you' },
+    { n: 3, label: 'Background', hint: 'Where you start' },
+    { n: 4, label: 'Cadence', hint: 'How you learn' },
+    { n: 5, label: 'Review', hint: 'Confirm & build' },
+  ];
+
   const handleInterestToggle = (interest) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const exists = prev.interests.includes(interest);
       return {
         ...prev,
-        interests: exists
-          ? prev.interests.filter(i => i !== interest)
-          : [...prev.interests, interest]
+        interests: exists ? prev.interests.filter((i) => i !== interest) : [...prev.interests, interest],
       };
     });
   };
 
   const handleFormatToggle = (format) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const exists = prev.learningFormats.includes(format);
       return {
         ...prev,
-        learningFormats: exists
-          ? prev.learningFormats.filter(f => f !== format)
-          : [...prev.learningFormats, format]
+        learningFormats: exists ? prev.learningFormats.filter((f) => f !== format) : [...prev.learningFormats, format],
       };
     });
   };
@@ -81,355 +85,466 @@ export function OnboardingPage() {
         learningPreferences: {
           format: formData.learningFormats,
           pace: formData.pace,
-          weeklyHours: formData.weeklyHours
-        }
+          weeklyHours: formData.weeklyHours,
+        },
       });
 
       updateGoal({
         title: formData.customGoal,
         targetRole: formData.targetRole,
-        timeframeWeeks: formData.timeframeWeeks
+        timeframeWeeks: formData.timeframeWeeks,
       });
 
       setHasGeneratedRoadmap(true);
       try {
         localStorage.setItem('hades_has_generated_roadmap', 'true');
       } catch (e) {
-        console.warn("Storage error:", e);
+        console.warn('Storage error:', e);
       }
 
       navigate('/dashboard/learning-path');
     }, 2400);
   };
 
+  const genStages = [
+    'Understanding your target role & experience',
+    'Mapping required skills & technologies',
+    'Checking code & mathematical prerequisites',
+    'Structuring multi-phase path & resources',
+  ];
+
+  const inputCls =
+    'w-full bg-stone-50 dark:bg-white/[0.03] border border-stone-200 dark:border-white/10 rounded-lg px-4 py-2.5 text-sm text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 transition';
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex flex-col justify-between p-4 sm:p-8 relative overflow-hidden transition-colors duration-200">
-      {/* Background ambient lighting */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/10 dark:bg-indigo-600/15 rounded-full blur-[140px] pointer-events-none -z-10" />
+    <div className="min-h-screen grid lg:grid-cols-[380px_1fr] text-stone-900 dark:text-stone-100">
+      {/* ---------------------------------------------------- Left identity rail */}
+      <aside className="relative hidden lg:flex flex-col justify-between p-10 border-r border-stone-200 dark:border-white/[0.08] overflow-hidden">
+        <div className="absolute inset-0 bg-grid opacity-60 dark:opacity-100 pointer-events-none [mask-image:linear-gradient(to_bottom,black,transparent)]" />
+        <div className="relative">
+          <Link to="/" className="inline-flex items-center gap-2.5">
+            <span className="w-9 h-9 rounded-lg bg-stone-900 dark:bg-white flex items-center justify-center">
+              <Radar className="w-[18px] h-[18px] text-amber-400 dark:text-amber-500" strokeWidth={2.25} />
+            </span>
+            <span className="flex flex-col leading-none">
+              <span className="font-display text-[15px] font-bold tracking-tight">HADES</span>
+              <span className="mono-label text-[9px] text-stone-400 dark:text-stone-500 mt-0.5">Mission Control</span>
+            </span>
+          </Link>
 
-      {/* Top Header */}
-      <header className="max-w-4xl w-full mx-auto flex items-center justify-between py-4">
-        <Link to="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-indigo-600/30">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <span className="font-bold text-slate-900 dark:text-white tracking-wider font-display text-lg">HADES</span>
-        </Link>
+          <h2 className="font-display text-2xl font-bold tracking-tight mt-10 leading-snug">
+            Let&apos;s chart your path.
+          </h2>
+          <p className="text-sm text-stone-500 dark:text-stone-400 mt-2 leading-relaxed max-w-xs">
+            Five quick steps. Then the engine builds a prerequisite graph tuned to exactly where you are.
+          </p>
 
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-          {!isGenerating && (
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-slate-500 dark:text-slate-400">Step {currentStep} of {totalSteps}</span>
-              <div className="w-32 h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-300"
-                  style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </header>
-
-      {/* Center Form Container */}
-      <main className="max-w-3xl w-full mx-auto my-auto py-6">
-        {isGenerating ? (
-          <GlassCard className="p-8 sm:p-12 text-center border-indigo-300 dark:border-indigo-500/40 shadow-2xl">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-indigo-500/40 animate-pulse text-white">
-              <Cpu className="w-8 h-8 animate-spin" style={{ animationDuration: '6s' }} />
-            </div>
-
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-display mb-3">
-              Synthesizing Your Adaptive Roadmap
-            </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-300 max-w-md mx-auto mb-8">
-              HADES is generating the deterministic prerequisite graph and curated resources for <strong className="text-indigo-600 dark:text-cyan-300">{formData.targetRole}</strong>.
-            </p>
-
-            <div className="max-w-md mx-auto space-y-3 text-left">
-              <div className={`flex items-center gap-3 p-3 rounded-xl border transition ${generationStage >= 1 ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-300 dark:border-indigo-500/40 text-slate-900 dark:text-white' : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500'}`}>
-                <CheckCircle2 className={`w-4 h-4 ${generationStage >= 1 ? 'text-indigo-600 dark:text-cyan-400' : 'text-slate-400'}`} />
-                <span className="text-xs sm:text-sm font-medium">1. Understanding your target role & experience</span>
-              </div>
-              <div className={`flex items-center gap-3 p-3 rounded-xl border transition ${generationStage >= 2 ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-300 dark:border-indigo-500/40 text-slate-900 dark:text-white' : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500'}`}>
-                <CheckCircle2 className={`w-4 h-4 ${generationStage >= 2 ? 'text-indigo-600 dark:text-cyan-400' : 'text-slate-400'}`} />
-                <span className="text-xs sm:text-sm font-medium">2. Mapping required skills & technologies</span>
-              </div>
-              <div className={`flex items-center gap-3 p-3 rounded-xl border transition ${generationStage >= 3 ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-300 dark:border-indigo-500/40 text-slate-900 dark:text-white' : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500'}`}>
-                <CheckCircle2 className={`w-4 h-4 ${generationStage >= 3 ? 'text-indigo-600 dark:text-cyan-400' : 'text-slate-400'}`} />
-                <span className="text-xs sm:text-sm font-medium">3. Checking code & mathematical prerequisites</span>
-              </div>
-              <div className={`flex items-center gap-3 p-3 rounded-xl border transition ${generationStage >= 4 ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-300 dark:border-indigo-500/40 text-slate-900 dark:text-white' : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500'}`}>
-                <CheckCircle2 className={`w-4 h-4 ${generationStage >= 4 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`} />
-                <span className="text-xs sm:text-sm font-medium">4. Structuring multi-phase learning path & resources</span>
-              </div>
-            </div>
-          </GlassCard>
-        ) : (
-          <GlassCard className="p-6 sm:p-10 border-slate-200 dark:border-slate-800 shadow-2xl">
-            {/* STEP 1: Target Role & Goal */}
-            {currentStep === 1 && (
-              <div className="space-y-6">
-                <div>
-                  <Badge variant="cyan" size="sm" className="mb-2">Step 1: Learning Goal</Badge>
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-display">What role are you targeting?</h2>
-                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-                    Select a high-demand track or customize your goal.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {[
-                    "Autonomous AI Systems Engineer",
-                    "Enterprise RAG & Search Architect",
-                    "Full-Stack LLM Developer",
-                    "Computer Vision & Robotics Engineer"
-                  ].map((role) => (
-                    <button
-                      key={role}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, targetRole: role, customGoal: `Master ${role} in 12 Weeks` })}
-                      className={`p-4 rounded-xl text-left border-2 transition-all duration-200 ${
-                        formData.targetRole === role
-                          ? 'bg-indigo-50 dark:bg-gradient-to-r dark:from-indigo-950/90 dark:to-slate-900 border-indigo-600 dark:border-indigo-500 ring-2 ring-indigo-500/20 text-indigo-950 dark:text-white shadow-sm'
-                          : 'bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-slate-700'
-                      }`}
-                    >
-                      <Target className="w-5 h-5 text-indigo-600 dark:text-cyan-400 mb-2" />
-                      <div className="text-sm font-bold">{role}</div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">High industry demand</div>
-                    </button>
-                  ))}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Custom Learning Goal Description</label>
-                  <input
-                    type="text"
-                    value={formData.customGoal}
-                    onChange={(e) => setFormData({ ...formData, customGoal: e.target.value })}
-                    className="w-full bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* STEP 2: Interests */}
-            {currentStep === 2 && (
-              <div className="space-y-6">
-                <div>
-                  <Badge variant="primary" size="sm" className="mb-2">Step 2: Core Interests</Badge>
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-display">Which technologies excite you?</h2>
-                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-                    Select the key topics you want prioritized in your recommendations.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-2.5">
-                  {[
-                    "Generative AI",
-                    "Agentic Workflows",
-                    "Vector Databases",
-                    "pgvector",
-                    "FastAPI",
-                    "Deep Learning",
-                    "PyTorch",
-                    "LLMOps & Guardrails",
-                    "Distributed Systems",
-                    "Graph Neural Networks"
-                  ].map((interest) => {
-                    const selected = formData.interests.includes(interest);
-                    return (
-                      <button
-                        key={interest}
-                        type="button"
-                        onClick={() => handleInterestToggle(interest)}
-                        className={`px-4 py-2 rounded-xl text-xs font-semibold border transition ${
-                          selected
-                            ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30'
-                            : 'bg-slate-50 dark:bg-slate-900/70 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-slate-700'
-                        }`}
-                      >
-                        {selected ? '✓ ' : '+ '}
-                        {interest}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* STEP 3: Experience */}
-            {currentStep === 3 && (
-              <div className="space-y-6">
-                <div>
-                  <Badge variant="cyan" size="sm" className="mb-2">Step 3: Background</Badge>
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-display">Your Current Experience</h2>
-                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-                    This determines where your prerequisite graph starts.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {[
-                    { id: "Beginner", title: "Beginner", desc: "Basic Python / programming knowledge, starting AI from zero." },
-                    { id: "Intermediate", title: "Intermediate", desc: "Comfortable with backend/data structures, built standard ML models." },
-                    { id: "Advanced", title: "Advanced", desc: "Shipped production code, looking to specialize in agentic systems." }
-                  ].map((lvl) => (
-                    <button
-                      key={lvl.id}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, experienceLevel: lvl.id })}
-                      className={`p-4 rounded-xl text-left border-2 transition ${
-                        formData.experienceLevel === lvl.id
-                          ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-600 dark:border-indigo-500 ring-2 ring-indigo-500/20 text-indigo-950 dark:text-white shadow-sm'
-                          : 'bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-slate-700'
-                      }`}
-                    >
-                      <div className="text-sm font-bold">{lvl.title}</div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{lvl.desc}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* STEP 4: Formats & Hours */}
-            {currentStep === 4 && (
-              <div className="space-y-6">
-                <div>
-                  <Badge variant="primary" size="sm" className="mb-2">Step 4: Preferences & Hours</Badge>
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-display">How do you prefer to learn?</h2>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {[
-                    "Hands-on Projects",
-                    "Interactive Labs",
-                    "Curated Videos",
-                    "Technical Articles & Whitepapers"
-                  ].map((fmt) => {
-                    const selected = formData.learningFormats.includes(fmt);
-                    return (
-                      <button
-                        key={fmt}
-                        type="button"
-                        onClick={() => handleFormatToggle(fmt)}
-                        className={`p-4 rounded-xl text-left border-2 transition ${
-                          selected
-                            ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-600 dark:border-indigo-500 text-indigo-950 dark:text-white shadow-sm'
-                            : 'bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-400 hover:border-indigo-300 dark:hover:border-slate-700'
-                        }`}
-                      >
-                        <div className="text-sm font-bold">{fmt}</div>
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">{selected ? 'Included in path' : 'Click to include'}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Weekly Commitment</label>
-                    <span className="text-xs font-bold text-indigo-600 dark:text-cyan-400">{formData.weeklyHours} hrs/week</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="4"
-                    max="35"
-                    step="1"
-                    value={formData.weeklyHours}
-                    onChange={(e) => setFormData({ ...formData, weeklyHours: Number(e.target.value) })}
-                    className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* STEP 5: Final Review */}
-            {currentStep === 5 && (
-              <div className="space-y-6">
-                <div>
-                  <Badge variant="emerald" size="sm" className="mb-2">Step 5: Review & Generate</Badge>
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-display">Ready to build your roadmap?</h2>
-                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-                    Verify your selections. HADES AI will generate your adaptive graph.
-                  </p>
-                </div>
-
-                <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-4">
-                  <div className="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-800">
-                    <span className="text-xs text-slate-500 dark:text-slate-400">Target Role</span>
-                    <strong className="text-sm text-slate-900 dark:text-white">{formData.targetRole}</strong>
-                  </div>
-                  <div className="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-800">
-                    <span className="text-xs text-slate-500 dark:text-slate-400">Experience Level</span>
-                    <strong className="text-sm text-slate-900 dark:text-white">{formData.experienceLevel}</strong>
-                  </div>
-                  <div className="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-800">
-                    <span className="text-xs text-slate-500 dark:text-slate-400">Pace / Study Load</span>
-                    <strong className="text-sm text-slate-900 dark:text-white">{formData.weeklyHours} Hours/Week ({formData.pace})</strong>
-                  </div>
-                  <div>
-                    <span className="text-xs text-slate-500 dark:text-slate-400 block mb-1.5">Selected Core Topics</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {formData.interests.map(i => (
-                        <span key={i} className="text-[11px] px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300">
-                          {i}
-                        </span>
-                      ))}
+          {/* Vertical stepper */}
+          <ol className="mt-10 space-y-1">
+            {stepMeta.map((s) => {
+              const done = s.n < currentStep;
+              const active = s.n === currentStep;
+              return (
+                <li
+                  key={s.n}
+                  className={`flex items-center gap-3.5 rounded-lg px-3 py-2.5 transition-colors ${
+                    active ? 'bg-amber-500/[0.08] border border-amber-500/25' : 'border border-transparent'
+                  }`}
+                >
+                  <span
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center mono-label text-[11px] shrink-0 border ${
+                      done
+                        ? 'bg-amber-500 border-amber-500 text-stone-950'
+                        : active
+                        ? 'border-amber-500 text-amber-600 dark:text-amber-400'
+                        : 'border-stone-200 dark:border-white/10 text-stone-400 dark:text-stone-500'
+                    }`}
+                  >
+                    {done ? <CheckCircle2 className="w-4 h-4" /> : `0${s.n}`}
+                  </span>
+                  <div className="min-w-0">
+                    <div className={`text-sm font-semibold ${active ? 'text-stone-900 dark:text-white' : 'text-stone-500 dark:text-stone-400'}`}>
+                      {s.label}
                     </div>
+                    <div className="mono-label text-[9px] text-stone-400 dark:text-stone-500 mt-0.5">{s.hint}</div>
                   </div>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+
+        <div className="relative rounded-xl overflow-hidden border border-stone-200 dark:border-white/[0.08] h-32">
+          <img src={IMAGERY.onboarding} alt="Two students pairing on a project" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 to-transparent" />
+          <p className="absolute bottom-3 left-3 right-3 text-[11px] text-white/90 leading-snug">
+            &ldquo;Your goal becomes a project. The project reveals the path.&rdquo;
+          </p>
+        </div>
+      </aside>
+
+      {/* ---------------------------------------------------- Right content */}
+      <div className="relative flex flex-col min-h-screen">
+        {/* Mobile header */}
+        <header className="flex items-center justify-between p-5 border-b border-stone-200 dark:border-white/[0.08] lg:justify-end">
+          <Link to="/" className="lg:hidden inline-flex items-center gap-2">
+            <span className="w-8 h-8 rounded-lg bg-stone-900 dark:bg-white flex items-center justify-center">
+              <Radar className="w-4 h-4 text-amber-400 dark:text-amber-500" strokeWidth={2.25} />
+            </span>
+            <span className="font-display text-sm font-bold tracking-tight">HADES</span>
+          </Link>
+          <div className="flex items-center gap-4">
+            {!isGenerating && (
+              <span className="mono-label text-stone-400 dark:text-stone-500 lg:hidden">Step {currentStep}/{totalSteps}</span>
+            )}
+            <ThemeToggle />
+          </div>
+        </header>
+
+        <main className="flex-1 flex items-center justify-center p-5 sm:p-10">
+          <div className="w-full max-w-2xl">
+            {isGenerating ? (
+              /* ---------------------------------------- Generation state */
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="rounded-2xl border border-stone-200 dark:border-white/[0.08] bg-white/90 dark:bg-[#101013]/80 backdrop-blur-md p-8 sm:p-10 text-center"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-amber-500 flex items-center justify-center mx-auto mb-6">
+                  <Radar className="w-7 h-7 text-stone-950 animate-spin" style={{ animationDuration: '4s' }} />
+                </div>
+                <span className="mono-label text-amber-600 dark:text-amber-400">Synthesizing</span>
+                <h2 className="font-display text-2xl font-bold tracking-tight text-stone-900 dark:text-white mt-2">
+                  Building your adaptive roadmap
+                </h2>
+                <p className="text-sm text-stone-500 dark:text-stone-400 max-w-md mx-auto mt-2">
+                  Generating the prerequisite graph for{' '}
+                  <strong className="text-stone-900 dark:text-white font-semibold">{formData.targetRole}</strong>.
+                </p>
+
+                <div className="max-w-md mx-auto mt-8 space-y-2.5 text-left">
+                  {genStages.map((label, i) => {
+                    const stage = i + 1;
+                    const active = generationStage >= stage;
+                    const isFinal = stage === 4;
+                    return (
+                      <div
+                        key={label}
+                        className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+                          active
+                            ? 'bg-amber-500/[0.06] border-amber-500/30'
+                            : 'bg-stone-50 dark:bg-white/[0.02] border-stone-200 dark:border-white/[0.06]'
+                        }`}
+                      >
+                        {active ? (
+                          <CheckCircle2 className={`w-4 h-4 shrink-0 ${isFinal ? 'text-emerald-500' : 'text-amber-500'}`} />
+                        ) : (
+                          <Loader2 className="w-4 h-4 shrink-0 text-stone-300 dark:text-stone-600 animate-spin" />
+                        )}
+                        <span className={`text-sm ${active ? 'text-stone-900 dark:text-white font-medium' : 'text-stone-400 dark:text-stone-500'}`}>
+                          {label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            ) : (
+              /* ---------------------------------------- Wizard card */
+              <div className="rounded-2xl border border-stone-200 dark:border-white/[0.08] bg-white/90 dark:bg-[#101013]/80 backdrop-blur-md p-6 sm:p-9">
+                {/* Mobile progress bar */}
+                <div className="lg:hidden mb-6 h-1 rounded-full bg-stone-200 dark:bg-white/[0.08] overflow-hidden">
+                  <div className="h-full bg-amber-500 transition-all duration-300" style={{ width: `${(currentStep / totalSteps) * 100}%` }} />
+                </div>
+
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentStep}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {/* STEP 1: Goal */}
+                    {currentStep === 1 && (
+                      <div className="space-y-6">
+                        <div>
+                          <span className="mono-label text-amber-600 dark:text-amber-400">Step 1 · The goal</span>
+                          <h2 className="font-display text-2xl font-bold tracking-tight text-stone-900 dark:text-white mt-2">
+                            What role are you targeting?
+                          </h2>
+                          <p className="text-sm text-stone-500 dark:text-stone-400 mt-1.5">
+                            Pick a high-demand track or write your own.
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {[
+                            'Autonomous AI Systems Engineer',
+                            'Enterprise RAG & Search Architect',
+                            'Full-Stack LLM Developer',
+                            'Computer Vision & Robotics Engineer',
+                          ].map((role) => {
+                            const selected = formData.targetRole === role;
+                            return (
+                              <button
+                                key={role}
+                                type="button"
+                                onClick={() => setFormData({ ...formData, targetRole: role, customGoal: `Master ${role} in 12 Weeks` })}
+                                className={`p-4 rounded-xl text-left border transition-all ${
+                                  selected
+                                    ? 'bg-amber-500/[0.06] border-amber-500/50 ring-1 ring-amber-500/30'
+                                    : 'bg-stone-50 dark:bg-white/[0.02] border-stone-200 dark:border-white/[0.08] hover:border-amber-500/30'
+                                }`}
+                              >
+                                <Target className={`w-5 h-5 mb-2 ${selected ? 'text-amber-500' : 'text-stone-400 dark:text-stone-500'}`} />
+                                <div className="text-sm font-semibold text-stone-900 dark:text-white">{role}</div>
+                                <div className="mono-label text-[9px] text-stone-400 dark:text-stone-500 mt-1">High industry demand</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1.5">
+                            Describe your goal
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.customGoal}
+                            onChange={(e) => setFormData({ ...formData, customGoal: e.target.value })}
+                            className={inputCls}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* STEP 2: Interests */}
+                    {currentStep === 2 && (
+                      <div className="space-y-6">
+                        <div>
+                          <span className="mono-label text-amber-600 dark:text-amber-400">Step 2 · Interests</span>
+                          <h2 className="font-display text-2xl font-bold tracking-tight text-stone-900 dark:text-white mt-2">
+                            Which technologies excite you?
+                          </h2>
+                          <p className="text-sm text-stone-500 dark:text-stone-400 mt-1.5">
+                            We&apos;ll prioritize these in your recommendations.
+                          </p>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2.5">
+                          {[
+                            'Generative AI',
+                            'Agentic Workflows',
+                            'Vector Databases',
+                            'pgvector',
+                            'FastAPI',
+                            'Deep Learning',
+                            'PyTorch',
+                            'LLMOps & Guardrails',
+                            'Distributed Systems',
+                            'Graph Neural Networks',
+                          ].map((interest) => {
+                            const selected = formData.interests.includes(interest);
+                            return (
+                              <button
+                                key={interest}
+                                type="button"
+                                onClick={() => handleInterestToggle(interest)}
+                                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium border transition ${
+                                  selected
+                                    ? 'bg-amber-500 text-stone-950 border-amber-500'
+                                    : 'bg-stone-50 dark:bg-white/[0.02] border-stone-200 dark:border-white/10 text-stone-600 dark:text-stone-300 hover:border-amber-500/40'
+                                }`}
+                              >
+                                {selected ? (
+                                  <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                                ) : (
+                                  <Plus className="w-3.5 h-3.5 text-stone-400" />
+                                )}
+                                {interest}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* STEP 3: Background */}
+                    {currentStep === 3 && (
+                      <div className="space-y-6">
+                        <div>
+                          <span className="mono-label text-amber-600 dark:text-amber-400">Step 3 · Background</span>
+                          <h2 className="font-display text-2xl font-bold tracking-tight text-stone-900 dark:text-white mt-2">
+                            Your current experience
+                          </h2>
+                          <p className="text-sm text-stone-500 dark:text-stone-400 mt-1.5">
+                            This sets where your prerequisite graph begins.
+                          </p>
+                        </div>
+
+                        <div className="space-y-3">
+                          {[
+                            { id: 'Beginner', title: 'Beginner', desc: 'Basic Python / programming, starting AI from zero.' },
+                            { id: 'Intermediate', title: 'Intermediate', desc: 'Comfortable with backend/data structures, built standard ML models.' },
+                            { id: 'Advanced', title: 'Advanced', desc: 'Shipped production code, specializing in agentic systems.' },
+                          ].map((lvl) => {
+                            const selected = formData.experienceLevel === lvl.id;
+                            return (
+                              <button
+                                key={lvl.id}
+                                type="button"
+                                onClick={() => setFormData({ ...formData, experienceLevel: lvl.id })}
+                                className={`w-full p-4 rounded-xl text-left border flex items-start gap-3 transition-all ${
+                                  selected
+                                    ? 'bg-amber-500/[0.06] border-amber-500/50 ring-1 ring-amber-500/30'
+                                    : 'bg-stone-50 dark:bg-white/[0.02] border-stone-200 dark:border-white/[0.08] hover:border-amber-500/30'
+                                }`}
+                              >
+                                <span
+                                  className={`w-4 h-4 rounded-full border-2 mt-0.5 shrink-0 ${
+                                    selected ? 'border-amber-500 bg-amber-500' : 'border-stone-300 dark:border-white/20'
+                                  }`}
+                                />
+                                <div>
+                                  <div className="text-sm font-semibold text-stone-900 dark:text-white">{lvl.title}</div>
+                                  <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">{lvl.desc}</p>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* STEP 4: Cadence */}
+                    {currentStep === 4 && (
+                      <div className="space-y-6">
+                        <div>
+                          <span className="mono-label text-amber-600 dark:text-amber-400">Step 4 · Cadence</span>
+                          <h2 className="font-display text-2xl font-bold tracking-tight text-stone-900 dark:text-white mt-2">
+                            How do you prefer to learn?
+                          </h2>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {['Hands-on Projects', 'Interactive Labs', 'Curated Videos', 'Technical Articles & Whitepapers'].map((fmt) => {
+                            const selected = formData.learningFormats.includes(fmt);
+                            return (
+                              <button
+                                key={fmt}
+                                type="button"
+                                onClick={() => handleFormatToggle(fmt)}
+                                className={`p-4 rounded-xl text-left border transition-all ${
+                                  selected
+                                    ? 'bg-amber-500/[0.06] border-amber-500/50'
+                                    : 'bg-stone-50 dark:bg-white/[0.02] border-stone-200 dark:border-white/[0.08] hover:border-amber-500/30'
+                                }`}
+                              >
+                                <div className="text-sm font-semibold text-stone-900 dark:text-white">{fmt}</div>
+                                <span className="mono-label text-[9px] text-stone-400 dark:text-stone-500 mt-1 block">
+                                  {selected ? 'Included in path' : 'Click to include'}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <div className="p-4 rounded-xl bg-stone-50 dark:bg-white/[0.02] border border-stone-200 dark:border-white/[0.08]">
+                          <div className="flex justify-between items-center mb-3">
+                            <label className="text-xs font-medium text-stone-600 dark:text-stone-300">Weekly commitment</label>
+                            <span className="mono-label text-amber-600 dark:text-amber-400">{formData.weeklyHours} hrs/week</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="4"
+                            max="35"
+                            step="1"
+                            value={formData.weeklyHours}
+                            onChange={(e) => setFormData({ ...formData, weeklyHours: Number(e.target.value) })}
+                            className="w-full h-1.5 bg-stone-200 dark:bg-white/[0.08] rounded-lg appearance-none cursor-pointer accent-amber-500"
+                          />
+                          <div className="flex justify-between mono-label text-[9px] text-stone-400 dark:text-stone-500 mt-2">
+                            <span>Casual · 4h</span>
+                            <span>Recommended · 14h</span>
+                            <span>Intensive · 35h</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* STEP 5: Review */}
+                    {currentStep === 5 && (
+                      <div className="space-y-6">
+                        <div>
+                          <span className="mono-label text-amber-600 dark:text-amber-400">Step 5 · Review</span>
+                          <h2 className="font-display text-2xl font-bold tracking-tight text-stone-900 dark:text-white mt-2">
+                            Ready to build your roadmap?
+                          </h2>
+                          <p className="text-sm text-stone-500 dark:text-stone-400 mt-1.5">
+                            Confirm your selections — the engine generates your adaptive graph.
+                          </p>
+                        </div>
+
+                        <div className="rounded-xl bg-stone-50 dark:bg-white/[0.02] border border-stone-200 dark:border-white/[0.08] divide-y divide-stone-200 dark:divide-white/[0.06]">
+                          {[
+                            ['Target role', formData.targetRole],
+                            ['Experience', formData.experienceLevel],
+                            ['Study load', `${formData.weeklyHours} hrs/week · ${formData.pace}`],
+                          ].map(([k, v]) => (
+                            <div key={k} className="flex justify-between items-center gap-4 px-4 py-3">
+                              <span className="mono-label text-stone-400 dark:text-stone-500">{k}</span>
+                              <strong className="text-sm text-stone-900 dark:text-white text-right">{v}</strong>
+                            </div>
+                          ))}
+                          <div className="px-4 py-3">
+                            <span className="mono-label text-stone-400 dark:text-stone-500 block mb-2">Core topics</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {formData.interests.map((i) => (
+                                <span
+                                  key={i}
+                                  className="mono-label text-[10px] px-2 py-1 rounded border border-amber-500/30 text-amber-700 dark:text-amber-300 bg-amber-500/[0.06]"
+                                >
+                                  {i}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* Nav footer */}
+                <div className="flex items-center justify-between pt-6 border-t border-stone-200 dark:border-white/[0.08] mt-8">
+                  {currentStep > 1 ? (
+                    <Button type="button" variant="secondary" size="md" icon={ArrowLeft} onClick={() => setCurrentStep((p) => p - 1)}>
+                      Back
+                    </Button>
+                  ) : (
+                    <div />
+                  )}
+
+                  {currentStep < totalSteps ? (
+                    <Button type="button" variant="primary" size="md" icon={ArrowRight} onClick={() => setCurrentStep((p) => p + 1)}>
+                      Continue
+                    </Button>
+                  ) : (
+                    <Button type="button" variant="primary" size="md" icon={Sparkles} onClick={handleFinishOnboarding}>
+                      Generate adaptive path
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
+          </div>
+        </main>
 
-            {/* Wizard Navigation Footer */}
-            <div className="flex items-center justify-between pt-6 border-t border-slate-200 dark:border-slate-800 mt-6">
-              {currentStep > 1 ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="md"
-                  icon={ArrowLeft}
-                  onClick={() => setCurrentStep(prev => prev - 1)}
-                >
-                  Back
-                </Button>
-              ) : (
-                <div />
-              )}
-
-              {currentStep < totalSteps ? (
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="md"
-                  onClick={() => setCurrentStep(prev => prev + 1)}
-                >
-                  Continue <ArrowRight className="w-4 h-4 ml-1" />
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  variant="primary"
-                  size="md"
-                  icon={Sparkles}
-                  onClick={handleFinishOnboarding}
-                >
-                  Generate Adaptive Path
-                </Button>
-              )}
-            </div>
-          </GlassCard>
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer className="text-center py-4 text-xs text-slate-500">
-        HADES Engine • Deterministic Prerequisite Graphs & Curated Learning Resources
-      </footer>
+        <footer className="text-center py-5 mono-label text-[10px] text-stone-400 dark:text-stone-500">
+          HADES Engine · Deterministic prerequisite graphs &amp; curated resources
+        </footer>
+      </div>
     </div>
   );
 }

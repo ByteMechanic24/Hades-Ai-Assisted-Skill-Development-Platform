@@ -1,33 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useLearner } from '../../context/LearnerContext';
-import { Button, Badge } from '../ui';
-import { 
-  X, 
-  Sparkles, 
-  Video, 
-  BookOpen, 
-  ExternalLink, 
-  CheckCircle2, 
-  Clock, 
-  Play, 
-  Heart, 
-  Star, 
-  Flame, 
-  Zap, 
-  Bookmark, 
-  Share2,
-  DollarSign,
+import { Eyebrow } from '../ui';
+import {
+  X,
+  Sparkles,
+  Video,
+  ExternalLink,
+  CheckCircle2,
+  Clock,
+  Star,
+  BookOpen,
+  MinusCircle,
+  Check,
   Award,
+  FileText,
   Filter,
-  Check
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { slideOverRight, backdrop as backdropVariants } from '../../utils/motion';
 
 export function NodeDetailDrawer({ node, mainNodeId, onClose }) {
   const { updateBranchStatus, openAssistant } = useLearner();
   const [resourcePricingFilter, setResourcePricingFilter] = useState('all'); // 'all' | 'free' | 'paid'
 
-  if (!node) return null;
+  useEffect(() => {
+    if (!node) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e) => e.key === 'Escape' && onClose();
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [node, onClose]);
 
   const handleStatusChange = (newStatus) => {
     updateBranchStatus(mainNodeId, node.id, newStatus);
@@ -35,7 +42,8 @@ export function NodeDetailDrawer({ node, mainNodeId, onClose }) {
       confetti({
         particleCount: 80,
         spread: 70,
-        origin: { y: 0.6 }
+        origin: { y: 0.6 },
+        colors: ['#f59e0b', '#fbbf24', '#fcd34d'],
       });
     }
   };
@@ -47,308 +55,308 @@ export function NodeDetailDrawer({ node, mainNodeId, onClose }) {
   const showFree = resourcePricingFilter === 'all' || resourcePricingFilter === 'free';
   const showPaid = resourcePricingFilter === 'all' || resourcePricingFilter === 'paid';
 
+  const statusMeta = {
+    done: { label: 'Completed', cls: 'text-emerald-600 dark:text-emerald-400 border-emerald-500/40 bg-emerald-500/10' },
+    learning: { label: 'In progress', cls: 'text-amber-600 dark:text-amber-400 border-amber-500/40 bg-amber-500/10' },
+    skip: { label: 'Skipped', cls: 'text-stone-500 dark:text-stone-400 border-stone-300 dark:border-white/15 bg-stone-100 dark:bg-white/[0.04]' },
+  };
+  const meta = node ? statusMeta[node.status] : null;
+
+  const statusButtons = [
+    { key: 'learning', label: 'Learning', icon: BookOpen, active: 'bg-amber-500 border-amber-500 text-stone-950' },
+    { key: 'done', label: 'Done', icon: Check, active: 'bg-emerald-500 border-emerald-500 text-white' },
+    { key: 'skip', label: 'Skip', icon: MinusCircle, active: 'bg-stone-700 border-stone-700 text-white' },
+  ];
+
+  const pricingTabs = [
+    { id: 'all', label: 'Everything' },
+    { id: 'free', label: 'Free' },
+    { id: 'paid', label: 'Paid' },
+  ];
+
   return (
-    <div className="fixed inset-y-0 right-0 z-50 w-full max-w-xl bg-white dark:bg-[#0e1626]/98 backdrop-blur-2xl border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col transition-all duration-300 animate-in slide-in-from-right text-slate-900 dark:text-slate-100">
-      {/* Top Header */}
-      <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-start justify-between bg-slate-50/80 dark:bg-slate-900/60">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 font-mono">
-              Topic Module
-            </span>
-            <Badge
-              variant={
-                node.status === 'done'
-                  ? 'emerald'
-                  : node.status === 'learning'
-                  ? 'purple'
-                  : node.status === 'skip'
-                  ? 'default'
-                  : 'cyan'
-              }
-              size="sm"
-            >
-              {node.status === 'done'
-                ? '✓ Completed'
-                : node.status === 'learning'
-                ? '📖 In Learning'
-                : node.status === 'skip'
-                ? '✕ Skipped'
-                : 'Pending'}
-            </Badge>
-          </div>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white font-display">
-            {node.title}
-          </h2>
-        </div>
+    <AnimatePresence>
+      {node && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            variants={backdropVariants}
+            initial="hidden"
+            animate="show"
+            exit="hidden"
+            onClick={onClose}
+            className="fixed inset-0 z-50 bg-stone-950/60 backdrop-blur-[2px]"
+          />
 
-        <button
-          onClick={onClose}
-          className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+          {/* Panel */}
+          <motion.aside
+            variants={slideOverRight}
+            initial="hidden"
+            animate="show"
+            exit="exit"
+            role="dialog"
+            aria-modal="true"
+            aria-label={node.title}
+            className="fixed inset-y-0 right-0 z-50 w-full sm:max-w-xl flex flex-col bg-white dark:bg-[#101013] border-l border-stone-200 dark:border-white/[0.08] shadow-2xl text-stone-900 dark:text-stone-100"
+          >
+            {/* ================================= Header */}
+            <div className="relative px-6 pt-6 pb-5 border-b border-stone-200 dark:border-white/[0.08]">
+              <div className="absolute left-0 top-6 bottom-5 w-0.5 bg-amber-500" />
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2.5 flex-wrap mb-2.5">
+                    <Eyebrow>Skill node</Eyebrow>
+                    {meta && (
+                      <span className={`mono-label text-[9px] px-2 py-1 rounded border ${meta.cls}`}>{meta.label}</span>
+                    )}
+                  </div>
+                  <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-stone-900 dark:text-white leading-tight">
+                    {node.title}
+                  </h2>
+                </div>
 
-      {/* Quick Action Button Group: Learning | Done | Skip */}
-      <div className="px-6 py-3 bg-slate-100/60 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800/80 flex items-center gap-2">
-        <button
-          onClick={() => handleStatusChange('learning')}
-          className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border ${
-            node.status === 'learning'
-              ? 'bg-purple-100 dark:bg-purple-600/30 text-purple-900 dark:text-purple-200 border-purple-400 dark:border-purple-500 shadow-sm'
-              : 'bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-700'
-          }`}
-        >
-          <span>📖</span> Learning
-        </button>
-        <button
-          onClick={() => handleStatusChange('done')}
-          className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border ${
-            node.status === 'done'
-              ? 'bg-emerald-100 dark:bg-emerald-600/30 text-emerald-900 dark:text-emerald-200 border-emerald-400 dark:border-emerald-500 shadow-sm'
-              : 'bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-700'
-          }`}
-        >
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" /> Done
-        </button>
-        <button
-          onClick={() => handleStatusChange('skip')}
-          className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border ${
-            node.status === 'skip'
-              ? 'bg-slate-200 dark:bg-slate-700/50 text-slate-900 dark:text-slate-200 border-slate-400 dark:border-slate-500 shadow-sm'
-              : 'bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-700'
-          }`}
-        >
-          <span>✕</span> Skip
-        </button>
-      </div>
-
-      {/* Drawer Body */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {/* Conceptual Summary */}
-        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
-          {node.summary || "Explore the core theoretical principles, mental models, and practical code implementations for this node."}
-        </div>
-
-        {/* Course Pricing Filter Button Toggle */}
-        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm dark:shadow-md">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
-            <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Course Pricing</span>
-          </div>
-
-          <div className="flex items-center gap-1 bg-white dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 w-full sm:w-auto shadow-inner">
-            <button
-              onClick={() => setResourcePricingFilter('all')}
-              className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                resourcePricingFilter === 'all'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setResourcePricingFilter('free')}
-              className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 ${
-                resourcePricingFilter === 'free'
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
-              }`}
-            >
-              <span>💚</span> Free Courses
-            </button>
-            <button
-              onClick={() => setResourcePricingFilter('paid')}
-              className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 ${
-                resourcePricingFilter === 'paid'
-                  ? 'bg-amber-500 text-slate-950 shadow-sm'
-                  : 'text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40'
-              }`}
-            >
-              <span>⭐</span> Paid / Pro
-            </button>
-          </div>
-        </div>
-
-        {/* Recommended Official / Primary Resource Card */}
-        {node.recommendedResource && (resourcePricingFilter === 'all' || resourcePricingFilter === 'free') && (
-          <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-50/60 to-white dark:from-amber-950/40 dark:via-slate-900 dark:to-slate-900 border border-amber-400/60 dark:border-amber-500/50 shadow-md">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                <Star className="w-3.5 h-3.5 fill-current" /> Recommended • Official Series
-              </span>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40">
-                100% FREE
-              </span>
-            </div>
-
-            <h3 className="text-base font-bold text-slate-900 dark:text-white mt-1">
-              {node.recommendedResource.title}
-            </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-              {node.recommendedResource.provider} • {node.recommendedResource.duration}
-            </p>
-
-            <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
-              <span className="text-xs text-slate-500 dark:text-slate-400">{node.recommendedResource.type}</span>
-              <a
-                href={node.recommendedResource.url}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-md shadow-amber-500/20"
-              >
-                Start Module <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </div>
-          </div>
-        )}
-
-        {/* PAID / PRO COURSES SECTION */}
-        {showPaid && node.paidCourses?.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5 font-mono">
-                <Award className="w-4 h-4 text-amber-500 dark:text-amber-400" /> Paid / Pro Certifications
-              </span>
-              <span className="text-[10px] text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/80 px-2 py-0.5 rounded-full border border-amber-300 dark:border-amber-500/30">
-                Verified Diplomas
-              </span>
-            </div>
-
-            <div className="space-y-3">
-              {node.paidCourses.map((paid) => (
-                <div
-                  key={paid.id}
-                  className="p-4 rounded-2xl bg-white dark:bg-gradient-to-r dark:from-amber-950/20 dark:to-slate-900/90 border border-amber-300 dark:border-amber-500/30 hover:border-amber-500 transition flex flex-col justify-between group shadow-sm dark:shadow-lg"
+                <button
+                  onClick={onClose}
+                  aria-label="Close panel"
+                  className="p-2 -mr-1 rounded-lg text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-white/[0.06] transition shrink-0"
                 >
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div>
-                      <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">{paid.provider}</span>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-200 transition mt-0.5">
-                        {paid.title}
-                      </h4>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <span className="text-sm font-black text-amber-600 dark:text-amber-300 block">{paid.price}</span>
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">{paid.discount}</span>
-                    </div>
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* ================================= Status switcher */}
+            <div className="px-6 py-4 border-b border-stone-200 dark:border-white/[0.08] bg-stone-50 dark:bg-white/[0.02]">
+              <span className="mono-label text-stone-400 dark:text-stone-500 block mb-2.5">Mark this node</span>
+              <div className="flex items-center gap-2">
+                {statusButtons.map((b) => {
+                  const isActive = node.status === b.key;
+                  return (
+                    <button
+                      key={b.key}
+                      onClick={() => handleStatusChange(b.key)}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold border transition ${
+                        isActive
+                          ? b.active
+                          : 'bg-white dark:bg-white/[0.03] border-stone-200 dark:border-white/10 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:border-stone-300 dark:hover:border-white/20'
+                      }`}
+                    >
+                      <b.icon className="w-3.5 h-3.5" strokeWidth={b.key === 'done' ? 3 : 2} />
+                      {b.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ================================= Body */}
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-7">
+              {/* Summary */}
+              <p className="text-sm text-stone-600 dark:text-stone-300 leading-relaxed border-l-2 border-stone-200 dark:border-white/10 pl-4">
+                {node.summary ||
+                  'Explore the core theoretical principles, mental models, and practical code implementations for this node.'}
+              </p>
+
+              {/* Pricing filter */}
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <span className="flex items-center gap-2 mono-label text-stone-400 dark:text-stone-500">
+                  <Filter className="w-3.5 h-3.5" /> Materials
+                </span>
+                <div className="flex items-center gap-1 p-1 rounded-lg bg-stone-100 dark:bg-white/[0.04] border border-stone-200 dark:border-white/10">
+                  {pricingTabs.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setResourcePricingFilter(t.id)}
+                      className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                        resourcePricingFilter === t.id
+                          ? 'bg-white dark:bg-white/10 text-stone-900 dark:text-white shadow-sm'
+                          : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white'
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ---------- Primary recommendation ---------- */}
+              {node.recommendedResource && (resourcePricingFilter === 'all' || resourcePricingFilter === 'free') && (
+                <div className="relative rounded-xl border border-amber-500/40 bg-amber-500/[0.05] p-5 overflow-hidden">
+                  <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-amber-500" />
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <span className="flex items-center gap-1.5 mono-label text-amber-600 dark:text-amber-400">
+                      <Star className="w-3.5 h-3.5 fill-current" /> Best match
+                    </span>
+                    <span className="mono-label text-[9px] px-2 py-1 rounded border border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                      Free
+                    </span>
                   </div>
 
-                  <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs">
-                    <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" /> {paid.duration} • {paid.rating}
-                    </span>
+                  <h3 className="font-display text-base font-semibold text-stone-900 dark:text-white leading-snug">
+                    {node.recommendedResource.title}
+                  </h3>
+                  <p className="text-xs text-stone-500 dark:text-stone-400 mt-1.5">
+                    {node.recommendedResource.provider} · {node.recommendedResource.duration}
+                  </p>
+
+                  <div className="mt-4 pt-4 border-t border-amber-500/20 flex items-center justify-between gap-3">
+                    <span className="mono-label text-stone-400 dark:text-stone-500">{node.recommendedResource.type}</span>
                     <a
-                      href={paid.url}
+                      href={node.recommendedResource.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-semibold transition"
                     >
-                      Enroll in Pro Course <ExternalLink className="w-3 h-3" />
+                      Start building <ExternalLink className="w-3.5 h-3.5" />
                     </a>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              )}
 
-        {/* FREE SECTION: Ranked YouTube Videos & Playlists */}
-        {showFree && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <Video className="w-4 h-4 text-rose-500" /> Ranked Free YouTube Playlists & Videos
-              </span>
-              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">100% Free Access</span>
-            </div>
-
-            <div className="space-y-3">
-              {node.rankedVideos?.map((video) => (
-                <div
-                  key={video.id}
-                  className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 transition flex gap-3.5 items-start group shadow-sm"
-                >
-                  <div className="relative w-24 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">
-                    <img
-                      src={video.thumbnail}
-                      alt={video.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition"
-                    />
-                    <span className="absolute bottom-1 right-1 px-1.5 py-0.2 rounded bg-black/80 text-[10px] font-mono text-white">
-                      {video.duration}
+              {/* ---------- Paid / Pro ---------- */}
+              {showPaid && node.paidCourses?.length > 0 && (
+                <section className="space-y-3">
+                  <div className="flex items-center justify-between gap-3 pb-2.5 border-b border-stone-200 dark:border-white/[0.08]">
+                    <span className="flex items-center gap-2 mono-label text-stone-500 dark:text-stone-400">
+                      <Award className="w-3.5 h-3.5 text-amber-500" /> Certifications
                     </span>
-                    <div className="absolute top-1 left-1 px-1.5 py-0.2 rounded bg-indigo-600 text-[9px] font-bold text-white">
-                      #{video.rank}
-                    </div>
+                    <span className="mono-label text-stone-400 dark:text-stone-500">{node.paidCourses.length} options</span>
                   </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-semibold text-indigo-600 dark:text-cyan-400 truncate">
-                        {video.channel}
-                      </span>
-                      <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-300 dark:border-emerald-500/30">
-                        {video.rating}
-                      </span>
-                    </div>
-                    <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition line-clamp-2 mt-0.5">
-                      {video.title}
-                    </h4>
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-200 dark:border-slate-800/60 text-[11px] text-slate-500 dark:text-slate-400">
-                      <span>{video.views}</span>
-                      <a
-                        href="https://youtube.com"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold flex items-center gap-1"
+                  <div className="space-y-2.5">
+                    {node.paidCourses.map((paid) => (
+                      <div
+                        key={paid.id}
+                        className="group rounded-xl border border-stone-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.02] p-4 hover:border-amber-500/40 transition"
                       >
-                        Watch on YouTube <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="min-w-0">
+                            <span className="mono-label text-stone-400 dark:text-stone-500 block mb-1">{paid.provider}</span>
+                            <h4 className="text-sm font-semibold text-stone-900 dark:text-white leading-snug group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
+                              {paid.title}
+                            </h4>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <span className="font-display text-sm font-bold text-stone-900 dark:text-white block tabular-nums">
+                              {paid.price}
+                            </span>
+                            <span className="mono-label text-[9px] text-emerald-600 dark:text-emerald-400">
+                              {paid.discount}
+                            </span>
+                          </div>
+                        </div>
 
-        {/* Free Articles & References */}
-        {showFree && node.articles?.length > 0 && (
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center gap-2 mb-3">
-              <Heart className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-              <span className="text-xs font-bold text-slate-900 dark:text-white">Free Documentation & Articles</span>
-            </div>
-            <div className="space-y-2">
-              {node.articles.map((art, idx) => (
-                <div key={idx} className="flex items-center justify-between text-xs py-1.5 border-b border-slate-200 dark:border-slate-800/80 last:border-none">
-                  <div className="flex items-center gap-2">
-                    <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-bold">
-                      Article
+                        <div className="mt-3.5 pt-3.5 border-t border-stone-200 dark:border-white/[0.08] flex items-center justify-between gap-3">
+                          <span className="flex items-center gap-3 text-xs text-stone-500 dark:text-stone-400">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5" /> {paid.duration}
+                            </span>
+                            <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                              <Star className="w-3.5 h-3.5 fill-current" /> {paid.rating}
+                            </span>
+                          </span>
+                          <a
+                            href={paid.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-900 dark:text-white hover:text-amber-600 dark:hover:text-amber-400 transition"
+                          >
+                            Enroll <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* ---------- Ranked free videos ---------- */}
+              {showFree && node.rankedVideos?.length > 0 && (
+                <section className="space-y-3">
+                  <div className="flex items-center justify-between gap-3 pb-2.5 border-b border-stone-200 dark:border-white/[0.08]">
+                    <span className="flex items-center gap-2 mono-label text-stone-500 dark:text-stone-400">
+                      <Video className="w-3.5 h-3.5 text-amber-500" /> Ranked walkthroughs
                     </span>
-                    <span className="text-slate-700 dark:text-slate-300 font-medium">{art.title}</span>
+                    <span className="mono-label text-stone-400 dark:text-stone-500">Free access</span>
                   </div>
-                  <span className="text-slate-400 text-[11px] whitespace-nowrap">{art.duration}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
 
-      {/* Bottom Floating AI Assistant Trigger */}
-      <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 flex items-center justify-between gap-3">
-        <button
-          onClick={handleAskAiAboutNode}
-          className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 hover:opacity-90 text-xs font-bold text-white flex items-center justify-center gap-2 transition shadow-md"
-        >
-          <Sparkles className="w-4 h-4 text-cyan-200" />
-          Ask AI Coach to explain "{node.title.slice(0, 20)}..."
-        </button>
-      </div>
-    </div>
+                  <div className="divide-y divide-stone-200 dark:divide-white/[0.06]">
+                    {node.rankedVideos.map((video) => (
+                      <div key={video.id} className="group flex gap-4 items-start py-3.5 first:pt-1">
+                        <div className="relative w-24 h-16 rounded-lg overflow-hidden shrink-0 border border-stone-200 dark:border-white/10 bg-stone-100 dark:bg-white/[0.04]">
+                          <img
+                            src={video.thumbnail}
+                            alt={video.title}
+                            loading="lazy"
+                            className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                          />
+                          <span className="absolute bottom-1 right-1 px-1.5 rounded bg-stone-950/85 mono-label text-[9px] text-white">
+                            {video.duration}
+                          </span>
+                          <span className="absolute top-1 left-1 w-5 h-5 rounded bg-amber-500 flex items-center justify-center font-display text-[10px] font-bold text-stone-950 tabular-nums">
+                            {video.rank}
+                          </span>
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="mono-label text-stone-400 dark:text-stone-500 truncate">{video.channel}</span>
+                            <span className="flex items-center gap-1 mono-label text-[9px] text-amber-600 dark:text-amber-400 shrink-0">
+                              <Star className="w-3 h-3 fill-current" /> {video.rating}
+                            </span>
+                          </div>
+                          <h4 className="text-[13px] font-medium text-stone-900 dark:text-white leading-snug line-clamp-2 mt-1 group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
+                            {video.title}
+                          </h4>
+                          <div className="flex items-center justify-between gap-2 mt-2">
+                            <span className="mono-label text-stone-400 dark:text-stone-500">{video.views}</span>
+                            <a
+                              href="https://youtube.com"
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-xs font-medium text-stone-600 dark:text-stone-300 hover:text-amber-600 dark:hover:text-amber-400 transition"
+                            >
+                              Watch <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* ---------- Articles ---------- */}
+              {showFree && node.articles?.length > 0 && (
+                <section className="space-y-1">
+                  <div className="flex items-center gap-2 mono-label text-stone-500 dark:text-stone-400 pb-2.5 border-b border-stone-200 dark:border-white/[0.08]">
+                    <FileText className="w-3.5 h-3.5 text-amber-500" /> Reference reading
+                  </div>
+                  <div className="divide-y divide-stone-200 dark:divide-white/[0.06]">
+                    {node.articles.map((art, idx) => (
+                      <div key={idx} className="flex items-center justify-between gap-4 py-2.5">
+                        <span className="text-[13px] text-stone-700 dark:text-stone-300 truncate">{art.title}</span>
+                        <span className="mono-label text-stone-400 dark:text-stone-500 shrink-0">{art.duration}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+
+            {/* ================================= Footer */}
+            <div className="px-6 py-4 border-t border-stone-200 dark:border-white/[0.08] bg-stone-50 dark:bg-white/[0.02]">
+              <button
+                onClick={handleAskAiAboutNode}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-stone-900 dark:bg-white text-white dark:text-stone-950 text-xs font-semibold hover:opacity-90 transition"
+              >
+                <Sparkles className="w-4 h-4 text-amber-400 dark:text-amber-600" />
+                Ask the coach about this node
+              </button>
+            </div>
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
