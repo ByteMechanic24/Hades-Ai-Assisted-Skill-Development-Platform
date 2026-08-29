@@ -1,73 +1,584 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import {
-  initialLearnerProfile,
-  initialLearningGoal,
-  initialLearningPath,
-  initialSkills,
-  initialResources,
-  initialMilestones,
-  initialAssistantMessages,
-  interactiveRoadmapData
-} from '../mock/mockData';
+  fetchDashboard as apiFetchDashboard,
+  fetchProfile as apiFetchProfile,
+  updateProfile as apiUpdateProfile,
+  fetchResources as apiFetchResources,
+  generateLearningPath as apiGenerateLearningPath,
+  fetchActiveLearningPath as apiFetchActiveLearningPath,
+  fetchSkills as apiFetchSkills,
+  fetchMilestones as apiFetchMilestones,
+  fetchProgressStats as apiFetchProgressStats,
+  fetchProgressEvents as apiFetchProgressEvents,
+  recordProgressEvent as apiRecordProgressEvent,
+  sendChatMessage as apiSendChatMessage,
+  submitOnboarding as apiSubmitOnboarding,
+  createGoal as apiCreateGoal,
+  fetchGoal as apiFetchGoal,
+} from '../api/learner';
+import { getToken } from '../api/client';
 
 const LearnerContext = createContext(null);
 
+const PATH_STORAGE_KEY = 'hades_active_learning_path';
+const ROADMAP_STORAGE_KEY = 'hades_active_roadmap';
+const EVENTS_STORAGE_KEY = 'hades_recent_events';
+
+function loadCachedJson(key, fallback) {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function saveCachedJson(key, data) {
+  try {
+    if (data) localStorage.setItem(key, JSON.stringify(data));
+  } catch (e) {
+    console.warn(`[HADES] Could not cache ${key}`, e);
+  }
+}
+
+const defaultProfile = {
+  id: '',
+  name: 'Learner',
+  email: '',
+  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  currentRole: 'Computer Science Learner',
+  targetRole: 'Autonomous AI Systems Engineer',
+  educationLevel: 'Undergraduate / Tech Enthusiast',
+  experienceLevel: 'Intermediate',
+  interests: ['Generative AI', 'Agentic Workflows', 'Vector Databases', 'FastAPI'],
+  learningPreferences: {
+    format: ['Hands-on Projects', 'Interactive Labs'],
+    pace: 'Accelerated',
+    weeklyHours: 14,
+  },
+};
+
+const defaultGoal = {
+  id: '',
+  title: 'Master Autonomous AI Systems Engineering',
+  targetRole: 'Autonomous AI Systems Engineer',
+  description: 'AI-curated learning path based on your goals and prerequisites.',
+  timeframeWeeks: 12,
+  completedWeeks: 0,
+  currentLevel: 'Intermediate',
+  targetLevel: 'Production-Ready Specialist',
+  status: 'in_progress',
+};
+
+const defaultPath = {
+  id: '',
+  goalId: '',
+  title: 'Personalized AI Engineering Roadmap',
+  description: 'AI-curated dynamic learning roadmap tailored to your experience and goals.',
+  status: 'active',
+  overallProgress: 38,
+  estimatedHoursLeft: 42,
+  pathAdaptationBanner: { visible: false },
+  phases: [],
+};
+
+const defaultRoadmap = {
+  id: '',
+  title: 'Personalized AI Roadmap',
+  description: 'Step-by-step curriculum with branch nodes, hands-on modules, and deterministic progress gates.',
+  rootTopic: 'Autonomous AI Systems Engineer',
+  mainNodes: [],
+};
+
+const defaultProgressStats = {
+  currentStreak: 14,
+  longestStreak: 21,
+  weeklyHoursLogged: 8.0,
+  weeklyHoursTarget: 14.0,
+  overallProgressPercent: 38.0,
+};
+
+const initialAssistantMessages = [
+  {
+    id: "msg_welcome",
+    sender: "assistant",
+    timestamp: "Just now",
+    content: "Hi! I'm your HADES AI Coach. I monitor your active roadmap nodes and progress.\n\nAsk me about any concept, prerequisites, or next steps!"
+  }
+];
+
 export function LearnerProvider({ children }) {
-  const [profile, setProfile] = useState(initialLearnerProfile);
-  const [goal, setGoal] = useState(initialLearningGoal);
-  const [path, setPath] = useState(initialLearningPath);
-  const [roadmap, setRoadmap] = useState(interactiveRoadmapData);
-  const [skills, setSkills] = useState(initialSkills);
-  const [resources, setResources] = useState(initialResources);
-  const [milestones, setMilestones] = useState(initialMilestones);
+  const [profile, setProfile] = useState(defaultProfile);
+  const [goal, setGoal] = useState(defaultGoal);
+  const [path, setPath] = useState(() => loadCachedJson(PATH_STORAGE_KEY, defaultPath));
+  const [roadmap, setRoadmap] = useState(() => loadCachedJson(ROADMAP_STORAGE_KEY, defaultRoadmap));
+  const [skills, setSkills] = useState([]);
+  const [resources, setResources] = useState([]);
+  const [milestones, setMilestones] = useState([]);
+  const [progressStats, setProgressStats] = useState(defaultProgressStats);
   const [assistantMessages, setAssistantMessages] = useState(initialAssistantMessages);
   const [selectedBranchNode, setSelectedBranchNode] = useState(null);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [isGeneratingPath, setIsGeneratingPath] = useState(false);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
+  const [dashboardError, setDashboardError] = useState(null);
   const [hasGeneratedRoadmap, setHasGeneratedRoadmap] = useState(() => {
     return localStorage.getItem('hades_has_generated_roadmap') === 'true';
   });
-  const [recentEvents, setRecentEvents] = useState([
-    { id: "ev_1", type: "NODE_STATUS_UPDATED", title: "Linear Algebra & Dot Products (Done)", timestamp: "2 hours ago" },
-    { id: "ev_2", type: "RESOURCE_LAUNCHED", title: "pgvector HNSW Lab (Rank #1)", timestamp: "Yesterday" },
-    { id: "ev_3", type: "PATH_ADAPTED", title: "AI Re-weighted YouTube Playlists", timestamp: "Yesterday" }
-  ]);
+  const [recentEvents, setRecentEvents] = useState(() => loadCachedJson(EVENTS_STORAGE_KEY, []));
 
-  const generateRoadmapForRole = (roleQuery) => {
+  // ── Helper: Map backend learning-path nodes → interactive roadmap tree ──
+  const mapBackendPathToRoadmap = useCallback((backendPath, targetRole) => {
+    if (!backendPath || !backendPath.nodes || backendPath.nodes.length === 0) return null;
+
+    const roleName = targetRole || backendPath.title?.replace('Personalized Roadmap: ', '') || 'AI Systems Engineering';
+
+    const mainNodes = backendPath.nodes.map((node, idx) => ({
+      id: node.id || `node-${idx + 1}`,
+      title: node.title,
+      category: `Stage ${node.sequence || idx + 1}`,
+      status: idx === 0 ? 'learning' : 'pending',
+      description: node.description,
+      branches: [
+        {
+          id: `branch_${node.id || idx}`,
+          title: node.title,
+          status: idx === 0 ? 'learning' : 'pending',
+          summary: node.description,
+          recommendedResource: {
+            title: `Deep Dive: ${node.title}`,
+            provider: 'HADES Curated Lab & Lecture',
+            duration: `${node.estimated_hours || 10}h`,
+            type: 'Core Concept',
+            url: 'https://youtube.com',
+          },
+          rankedVideos: [
+            {
+              id: `v_${node.id || idx}_1`,
+              rank: 1,
+              title: `${node.title} — Comprehensive Guide & Implementation`,
+              channel: 'HADES AI Academy',
+              duration: '45 mins',
+              views: '250K views',
+              thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&auto=format&fit=crop&q=80',
+              rating: '98% Match',
+            },
+          ],
+          articles: [
+            { title: `${node.title} Architecture & Evaluation Benchmarks`, duration: '10 min read' },
+          ],
+          paidCourses: [],
+        },
+      ],
+    }));
+
+    return {
+      id: `roadmap_${Date.now()}`,
+      title: backendPath.title || `${roleName} Roadmap`,
+      description: backendPath.description || 'AI-generated personalized learning path.',
+      rootTopic: roleName,
+      mainNodes,
+    };
+  }, []);
+
+  // ── Helper: Map backend learning-path nodes → trackable phases & nodes ──
+  const mapBackendPathToPhases = useCallback((backendPath, currentGoalId, targetRole) => {
+    if (!backendPath || !backendPath.nodes || backendPath.nodes.length === 0) return null;
+
+    const roleName = targetRole || backendPath.title?.replace('Personalized Roadmap: ', '') || 'AI Systems Engineering';
+
+    const nodes = backendPath.nodes.map((node, idx) => ({
+      id: node.id || `node-${idx + 1}`,
+      type: 'skill',
+      title: node.title,
+      status: idx === 0 ? 'in_progress' : 'available',
+      estimatedMinutes: (node.estimated_hours || 10) * 60,
+      confidenceScore: idx === 0 ? 80 : 50,
+      prerequisites: node.prerequisite_ids || (idx > 0 ? [backendPath.nodes[idx - 1].id || `node-${idx}`] : []),
+      description: node.description,
+    }));
+
+    return {
+      id: `path_${Date.now()}`,
+      goalId: currentGoalId || 'goal_01',
+      title: backendPath.title || `${roleName} Roadmap`,
+      description: backendPath.description || 'AI-curated learning path based on your goals and prerequisites.',
+      status: 'active',
+      overallProgress: 0,
+      estimatedHoursLeft: backendPath.estimated_hours || 40,
+      pathAdaptationBanner: { visible: false },
+      phases: [{
+        id: 'phase_1',
+        number: 1,
+        title: backendPath.title || 'Core Foundations',
+        description: backendPath.description || 'Master core concepts and tools.',
+        status: 'in_progress',
+        progress: 0,
+        nodes,
+      }],
+    };
+  }, []);
+
+  // ── API Loader: Skills Competency Matrix (GET /api/skills) ──
+  const loadSkills = useCallback(async () => {
+    try {
+      const data = await apiFetchSkills();
+      if (Array.isArray(data) && data.length > 0) {
+        setSkills(data);
+      }
+    } catch (err) {
+      console.warn('[HADES] Skills fetch warning:', err);
+    }
+  }, []);
+
+  // ── API Loader: Milestones Badges (GET /api/milestones) ──
+  const loadMilestones = useCallback(async () => {
+    if (!getToken()) return;
+    try {
+      const data = await apiFetchMilestones();
+      if (Array.isArray(data) && data.length > 0) {
+        setMilestones(data);
+      }
+    } catch (err) {
+      console.warn('[HADES] Milestones fetch warning:', err);
+    }
+  }, []);
+
+  // ── API Loader: Progress Stats & Streak (GET /api/progress/stats) ──
+  const loadProgressStats = useCallback(async () => {
+    if (!getToken()) return;
+    try {
+      const data = await apiFetchProgressStats();
+      if (data) {
+        setProgressStats({
+          currentStreak: data.currentStreak ?? 14,
+          longestStreak: data.longestStreak ?? 21,
+          weeklyHoursLogged: data.weeklyHoursLogged ?? 8.0,
+          weeklyHoursTarget: data.weeklyHoursTarget ?? 14.0,
+          overallProgressPercent: data.overallProgressPercent ?? 38.0,
+        });
+        if (data.overallProgressPercent != null) {
+          setPath(prev => ({ ...prev, overallProgress: Math.round(data.overallProgressPercent) }));
+        }
+      }
+    } catch (err) {
+      console.warn('[HADES] Progress stats fetch warning:', err);
+    }
+  }, []);
+
+  // ── API Loader: Activity Event Telemetry (GET /api/progress/events) ──
+  const loadProgressEvents = useCallback(async () => {
+    if (!getToken()) return;
+    try {
+      const data = await apiFetchProgressEvents();
+      if (Array.isArray(data) && data.length > 0) {
+        const formattedEvents = data.map(ev => ({
+          id: ev.id,
+          type: ev.eventType,
+          title: (() => {
+            try {
+              const p = JSON.parse(ev.payload);
+              return p.title || ev.eventType;
+            } catch {
+              return ev.eventType;
+            }
+          })(),
+          timestamp: ev.createdAt ? new Date(ev.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently',
+          entityId: ev.entityId,
+          payload: ev.payload,
+        }));
+        setRecentEvents(formattedEvents);
+        saveCachedJson(EVENTS_STORAGE_KEY, formattedEvents);
+      }
+    } catch (err) {
+      console.warn('[HADES] Progress events fetch warning:', err);
+    }
+  }, []);
+
+  // ── API Loader: Resources Catalog (GET /api/resources) ──
+  const loadResources = useCallback(async (filters = {}) => {
+    try {
+      const data = await apiFetchResources(filters);
+      if (Array.isArray(data) && data.length > 0) {
+        setResources(data);
+      }
+    } catch (err) {
+      console.warn('[HADES] Resources fetch warning:', err);
+    }
+  }, []);
+
+  // ── API Loader: Enriched Profile (GET /api/profile) ──
+  const loadProfile = useCallback(async () => {
+    if (!getToken()) return;
+    try {
+      const data = await apiFetchProfile();
+      if (data) {
+        setProfile(prev => ({
+          ...prev,
+          id: data.id || data.userId || prev.id,
+          name: data.name || prev.name,
+          email: data.email || prev.email,
+          avatar: data.avatar || prev.avatar,
+          currentRole: data.currentRole || prev.currentRole,
+          targetRole: data.targetRole || prev.targetRole,
+          educationLevel: data.educationLevel || prev.educationLevel,
+          experienceLevel: data.experienceLevel || prev.experienceLevel,
+          interests: data.interests && data.interests.length > 0 ? data.interests : prev.interests,
+          learningPreferences: {
+            ...prev.learningPreferences,
+            format: data.learningPreferences || prev.learningPreferences?.format,
+            weeklyHours: data.weeklyHours || Math.round(((data.minutesPerDay || 60) * (data.daysPerWeek || 5)) / 60) || prev.learningPreferences?.weeklyHours,
+          },
+        }));
+      }
+    } catch (err) {
+      console.warn('[HADES] Profile fetch warning:', err);
+    }
+  }, []);
+
+  // ── API Loader: Active Learning Path (GET /api/learning-paths) ──
+  const loadActiveLearningPath = useCallback(async () => {
+    if (!getToken()) return;
+    try {
+      const data = await apiFetchActiveLearningPath();
+      if (data && data.nodes && data.nodes.length > 0) {
+        const newRoadmap = mapBackendPathToRoadmap(data, profile.targetRole);
+        const newPath = mapBackendPathToPhases(data, goal?.id, profile.targetRole);
+        if (newRoadmap) {
+          setRoadmap(newRoadmap);
+          saveCachedJson(ROADMAP_STORAGE_KEY, newRoadmap);
+        }
+        if (newPath) {
+          setPath(newPath);
+          saveCachedJson(PATH_STORAGE_KEY, newPath);
+        }
+        setHasGeneratedRoadmap(true);
+        try { localStorage.setItem('hades_has_generated_roadmap', 'true'); } catch {}
+      }
+    } catch (err) {
+      // 404 is normal if user has not yet generated a roadmap
+      if (err.status !== 404) {
+        console.warn('[HADES] Active learning path fetch error:', err);
+      }
+    }
+  }, [profile.targetRole, goal?.id, mapBackendPathToRoadmap, mapBackendPathToPhases]);
+
+  // ── API Loader: Dashboard Overview (GET /api/dashboard) ──
+  const loadDashboard = useCallback(async () => {
+    if (!getToken()) return;
+    setDashboardLoading(true);
+    setDashboardError(null);
+    try {
+      const data = await apiFetchDashboard();
+      
+      if (data.user) {
+        setProfile(prev => ({
+          ...prev,
+          id: data.user.userId || prev.id,
+          targetRole: data.user.targetRole || prev.targetRole,
+          experienceLevel: data.user.experienceLevel || prev.experienceLevel,
+          learningPreferences: {
+            ...prev.learningPreferences,
+            weeklyHours: Math.round(((data.user.minutesPerDay || 60) * (data.user.daysPerWeek || 5)) / 60),
+          },
+        }));
+      }
+
+      if (data.activeGoal) {
+        setGoal(prev => ({
+          ...prev,
+          id: data.activeGoal.id || prev.id,
+          title: data.activeGoal.title || prev.title,
+          description: data.activeGoal.description || prev.description,
+          status: data.activeGoal.isActive ? 'in_progress' : prev.status,
+        }));
+      }
+
+      if (data.currentPath && data.currentPath.nodes && data.currentPath.nodes.length > 0) {
+        const newRoadmap = mapBackendPathToRoadmap(data.currentPath, data.user?.targetRole || profile.targetRole);
+        const newPath = mapBackendPathToPhases(data.currentPath, data.activeGoal?.id || goal?.id, data.user?.targetRole || profile.targetRole);
+        if (newRoadmap) {
+          setRoadmap(newRoadmap);
+          saveCachedJson(ROADMAP_STORAGE_KEY, newRoadmap);
+        }
+        if (newPath) {
+          setPath(newPath);
+          saveCachedJson(PATH_STORAGE_KEY, newPath);
+        }
+        setHasGeneratedRoadmap(true);
+        try { localStorage.setItem('hades_has_generated_roadmap', 'true'); } catch {}
+      }
+
+      if (data.overallProgressPercent != null) {
+        setPath(prev => ({
+          ...prev,
+          overallProgress: Math.round(data.overallProgressPercent),
+        }));
+      }
+
+    } catch (err) {
+      console.error('[HADES] Dashboard fetch failed:', err);
+      setDashboardError(err.body?.message || err.message || 'Failed to load dashboard telemetry.');
+    } finally {
+      setDashboardLoading(false);
+    }
+  }, [profile.targetRole, goal?.id, mapBackendPathToRoadmap, mapBackendPathToPhases]);
+
+  // ── Master Loader: Load all available backend data when authenticated ──
+  const loadAllData = useCallback(async () => {
+    if (!getToken()) return;
+    await Promise.allSettled([
+      loadProfile(),
+      loadDashboard(),
+      loadActiveLearningPath(),
+      loadSkills(),
+      loadMilestones(),
+      loadProgressStats(),
+      loadProgressEvents(),
+      loadResources(),
+    ]);
+  }, [loadProfile, loadDashboard, loadActiveLearningPath, loadSkills, loadMilestones, loadProgressStats, loadProgressEvents, loadResources]);
+
+  // Auto-load on mount if token exists
+  useEffect(() => {
+    if (getToken()) {
+      loadAllData();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Merge auth user data into profile ──
+  const mergeAuthUser = useCallback((authUser) => {
+    if (!authUser) return;
+    setProfile(prev => ({
+      ...prev,
+      id: authUser.id || prev.id,
+      name: authUser.name || prev.name,
+      email: authUser.email || prev.email,
+      avatar: authUser.avatar || prev.avatar,
+    }));
+    if (authUser.hasGeneratedRoadmap) {
+      setHasGeneratedRoadmap(true);
+      try { localStorage.setItem('hades_has_generated_roadmap', 'true'); } catch {}
+    }
+  }, []);
+
+  // ── Submit onboarding (POST /api/onboarding) ──
+  const submitOnboarding = useCallback(async (formData) => {
+    const minutesPerDay = Math.round((formData.weeklyHours || 14) / 5 * 60 / 60) || 60;
+    const daysPerWeek = 5;
+
+    const prefMap = {
+      'Hands-on Projects': 'hands_on',
+      'Interactive Labs': 'hands_on',
+      'Curated Videos': 'video',
+      'Technical Articles & Whitepapers': 'reading',
+    };
+    const learningPreferences = [...new Set(
+      (formData.learningFormats || []).map(f => prefMap[f] || 'hands_on')
+    )];
+
+    const payload = {
+      experienceLevel: (formData.experienceLevel || 'intermediate').toLowerCase(),
+      minutesPerDay,
+      daysPerWeek,
+      targetRole: formData.targetRole,
+      interests: formData.interests || [],
+      learningPreferences,
+      goalTitle: formData.customGoal || `Master ${formData.targetRole}`,
+      goalDescription: formData.customGoal || `Build expertise in ${formData.targetRole}`,
+    };
+
+    const result = await apiSubmitOnboarding(payload);
+    
+    if (result) {
+      setProfile(prev => ({
+        ...prev,
+        targetRole: result.targetRole || prev.targetRole,
+        experienceLevel: result.experienceLevel || prev.experienceLevel,
+      }));
+    }
+
+    return result;
+  }, []);
+
+  // ── Generate learning path via AI (POST /api/learning-paths) ──
+  const generateRoadmapForRole = useCallback(async (roleQuery, formData = {}) => {
     if (!roleQuery || !roleQuery.trim()) return;
     const cleanRole = roleQuery.trim();
     
-    setProfile(prev => ({
-      ...prev,
-      targetRole: cleanRole
-    }));
+    setIsGeneratingPath(true);
 
-    setGoal(prev => ({
-      ...prev,
-      title: `Master ${cleanRole} Roadmap`,
-      targetRole: cleanRole
-    }));
-
-    setRoadmap(prev => ({
-      ...prev,
-      title: `${cleanRole} Interactive Roadmap`,
-      rootTopic: cleanRole
-    }));
-
-    setHasGeneratedRoadmap(true);
     try {
-      localStorage.setItem('hades_has_generated_roadmap', 'true');
-    } catch (e) {
-      console.warn("Storage error:", e);
+      const payload = {
+        learner: {
+          experience_level: (formData.experienceLevel || profile.experienceLevel || 'intermediate').toLowerCase(),
+          interests: formData.interests || profile.interests || ['Generative AI', 'Agentic Workflows'],
+          career: { target_role: cleanRole },
+          learning_preferences: formData.learningPreferences || ['hands_on', 'video'],
+          availability: {
+            minutes_per_day: formData.minutesPerDay || 60,
+            days_per_week: formData.daysPerWeek || 5,
+          },
+          existing_skills: (formData.interests || []).map(i => ({ name: i, confidence: 0.7 })),
+          completed_learning: [],
+        },
+        goal: {
+          title: formData.goalTitle || `Master ${cleanRole}`,
+          description: formData.goalDescription || `Build production expertise in ${cleanRole}`,
+        },
+      };
+
+      const backendPath = await apiGenerateLearningPath(payload);
+
+      setProfile(prev => ({ ...prev, targetRole: cleanRole }));
+      setGoal(prev => ({
+        ...prev,
+        title: backendPath.title || `Master ${cleanRole}`,
+        targetRole: cleanRole,
+      }));
+
+      // Transform backend nodes into interactive roadmap structure
+      const newRoadmap = mapBackendPathToRoadmap(backendPath, cleanRole);
+      if (newRoadmap) {
+        setRoadmap(newRoadmap);
+        saveCachedJson(ROADMAP_STORAGE_KEY, newRoadmap);
+      }
+
+      // Transform backend nodes into phases & trackable nodes
+      const newPath = mapBackendPathToPhases(backendPath, goal?.id, cleanRole);
+      if (newPath) {
+        setPath(newPath);
+        saveCachedJson(PATH_STORAGE_KEY, newPath);
+      }
+
+      setHasGeneratedRoadmap(true);
+      try {
+        localStorage.setItem('hades_has_generated_roadmap', 'true');
+      } catch (e) {
+        console.warn("Storage error:", e);
+      }
+
+      // Refresh auxiliary stats & telemetry
+      loadSkills();
+      loadMilestones();
+      loadProgressStats();
+
+      recordProgressEvent("ROADMAP_GENERATED", {
+        title: `Generated roadmap for ${cleanRole}`,
+        role: cleanRole,
+      });
+
+      return backendPath;
+    } catch (err) {
+      console.error('[HADES] Path generation failed:', err);
+      throw err;
+    } finally {
+      setIsGeneratingPath(false);
     }
+  }, [profile.experienceLevel, profile.interests, goal?.id, mapBackendPathToRoadmap, mapBackendPathToPhases, loadSkills, loadMilestones, loadProgressStats]);
 
-    recordProgressEvent("ROADMAP_GENERATED", {
-      title: `Generated roadmap for ${cleanRole}`,
-      role: cleanRole
-    });
-  };
-
-  const recordProgressEvent = (eventType, payload) => {
+  // ── Record progress event (POST /api/progress/events) ──
+  const recordProgressEvent = useCallback(async (eventType, payload) => {
     const newEvent = {
       id: `ev_${Date.now()}`,
       type: eventType,
@@ -75,19 +586,73 @@ export function LearnerProvider({ children }) {
       timestamp: "Just now",
       data: payload
     };
-    setRecentEvents(prev => [newEvent, ...prev.slice(0, 9)]);
-    console.log(`[HADES Event Bus] ${eventType}:`, payload);
-  };
+    setRecentEvents(prev => {
+      const updated = [newEvent, ...prev.slice(0, 15)];
+      saveCachedJson(EVENTS_STORAGE_KEY, updated);
+      return updated;
+    });
 
-  const updateProfile = (newProfile) => {
+    if (getToken()) {
+      try {
+        await apiRecordProgressEvent({
+          eventType,
+          entityId: payload?.branchId || payload?.resourceId || payload?.role || eventType,
+          payload: JSON.stringify(payload || {}),
+        });
+      } catch (err) {
+        console.warn('[HADES] Progress event recording failed:', err);
+      }
+    }
+  }, []);
+
+  // ── Update Profile & Persist (PUT /api/profile + POST /api/goals) ──
+  const updateProfile = useCallback(async (newProfile) => {
     setProfile(prev => ({ ...prev, ...newProfile }));
-    recordProgressEvent("PROFILE_UPDATED", { title: "Learner Profile Updated" });
-  };
 
-  const updateGoal = (newGoal) => {
+    if (getToken()) {
+      try {
+        const updatePayload = {
+          experienceLevel: newProfile.experienceLevel?.toLowerCase(),
+          targetRole: newProfile.targetRole,
+          minutesPerDay: newProfile.learningPreferences?.weeklyHours ? Math.round((newProfile.learningPreferences.weeklyHours / 5) * 60) : undefined,
+          daysPerWeek: 5,
+          learningPreferences: Array.isArray(newProfile.learningPreferences?.format) ? newProfile.learningPreferences.format : undefined,
+        };
+        await apiUpdateProfile(updatePayload);
+
+        if (newProfile.targetRole) {
+          await apiCreateGoal({
+            title: `Master ${newProfile.targetRole}`,
+            description: `Personalized track for ${newProfile.targetRole}`,
+            targetRole: newProfile.targetRole,
+          });
+        }
+      } catch (err) {
+        console.warn('[HADES] Profile PUT failed:', err);
+      }
+    }
+
+    recordProgressEvent("PROFILE_UPDATED", { title: "Learner Profile Updated" });
+  }, [recordProgressEvent]);
+
+  // ── Update Goal & Persist (POST /api/goals) ──
+  const updateGoal = useCallback(async (newGoal) => {
     setGoal(prev => ({ ...prev, ...newGoal }));
+
+    if (getToken() && newGoal.title) {
+      try {
+        await apiCreateGoal({
+          title: newGoal.title,
+          description: newGoal.description || `Learning path for ${newGoal.targetRole || 'engineering'}`,
+          targetRole: newGoal.targetRole,
+        });
+      } catch (err) {
+        console.warn('[HADES] Goal creation failed:', err);
+      }
+    }
+
     recordProgressEvent("GOAL_UPDATED", { title: `Goal set: ${newGoal.title}` });
-  };
+  }, [recordProgressEvent]);
 
   const dismissAdaptationBanner = () => {
     setPath(prev => ({
@@ -98,29 +663,30 @@ export function LearnerProvider({ children }) {
 
   const completeNode = (phaseId, nodeId) => {
     setPath(prev => {
-      const newPhases = prev.phases.map(ph => {
+      const newPhases = (prev.phases || []).map(ph => {
         if (ph.id !== phaseId) return ph;
-        const newNodes = ph.nodes.map(node => {
+        const newNodes = (ph.nodes || []).map(node => {
           if (node.id === nodeId) {
             return { ...node, status: 'completed' };
           }
           return node;
         });
         const completedCount = newNodes.filter(n => n.status === 'completed').length;
-        const phaseProgress = Math.round((completedCount / newNodes.length) * 100);
+        const phaseProgress = Math.round((completedCount / (newNodes.length || 1)) * 100);
         return { ...ph, nodes: newNodes, progress: phaseProgress };
       });
-      return { ...prev, phases: newPhases, overallProgress: Math.min(100, prev.overallProgress + 8) };
+      const updated = { ...prev, phases: newPhases, overallProgress: Math.min(100, (prev.overallProgress || 0) + 15) };
+      saveCachedJson(PATH_STORAGE_KEY, updated);
+      return updated;
     });
     recordProgressEvent("NODE_COMPLETED", { title: `Completed step: ${nodeId}` });
   };
 
-  // Update status of any branch in roadmap.sh tree (learning | done | skip | pending)
   const updateBranchStatus = (mainNodeId, branchId, newStatus) => {
     setRoadmap(prev => {
-      const newMainNodes = prev.mainNodes.map(mNode => {
+      const newMainNodes = (prev.mainNodes || []).map(mNode => {
         if (mNode.id !== mainNodeId && !mNode.branches?.some(b => b.id === branchId)) return mNode;
-        const newBranches = mNode.branches.map(br => {
+        const newBranches = (mNode.branches || []).map(br => {
           if (br.id === branchId) {
             return { ...br, status: newStatus };
           }
@@ -134,7 +700,9 @@ export function LearnerProvider({ children }) {
         return { ...mNode, status: updatedMainStatus, branches: newBranches };
       });
 
-      return { ...prev, mainNodes: newMainNodes };
+      const updated = { ...prev, mainNodes: newMainNodes };
+      saveCachedJson(ROADMAP_STORAGE_KEY, updated);
+      return updated;
     });
 
     setSelectedBranchNode(prev => {
@@ -156,7 +724,7 @@ export function LearnerProvider({ children }) {
       prev.map(r => r.id === resourceId ? { ...r, isSaved: !r.isSaved } : r)
     );
     const item = resources.find(r => r.id === resourceId);
-    recordProgressEvent("RESOURCE_SAVED", { title: item?.title || "Resource Saved" });
+    recordProgressEvent("RESOURCE_SAVED", { title: item?.title || "Resource Saved", resourceId });
   };
 
   const updateResourceProgress = (resourceId, newProgress) => {
@@ -164,11 +732,12 @@ export function LearnerProvider({ children }) {
       prev.map(r => r.id === resourceId ? { ...r, progress: newProgress } : r)
     );
     if (newProgress === 100) {
-      recordProgressEvent("RESOURCE_COMPLETED", { title: `Finished resource: ${resourceId}` });
+      recordProgressEvent("RESOURCE_COMPLETED", { title: `Finished resource: ${resourceId}`, resourceId });
     }
   };
 
-  const sendAssistantMessage = (userText) => {
+  // ── AI Assistant Chat (POST /api/assistant/chat) ──
+  const sendAssistantMessage = useCallback(async (userText) => {
     if (!userText || !userText.trim()) return;
     
     const userMsg = {
@@ -181,33 +750,41 @@ export function LearnerProvider({ children }) {
     setAssistantMessages(prev => [...prev, userMsg]);
     recordProgressEvent("ASSISTANT_QUERY", { title: userText.slice(0, 30) });
 
-    setTimeout(() => {
-      let aiReply = "I'm monitoring your active roadmap. Based on your target role as an **Autonomous AI Systems Engineer**, here is what you need to know:";
-      
-      const lower = userText.toLowerCase();
-      if (lower.includes("cosine") || lower.includes("similarity")) {
-        aiReply = "📐 **Cosine Similarity vs Dot Product:**\n\n- **Dot Product**: Combines both vector magnitude (length) and angle.\n- **Cosine Similarity**: Normalizes vector lengths to 1, measuring purely directional semantic angle. Perfect for text embeddings where document length shouldn't bias the score!";
-      } else if (lower.includes("hnsw") || lower.includes("index") || lower.includes("vector")) {
-        aiReply = "⚡ **Why HNSW (Hierarchical Navigable Small World) Indexing is Ranked #1:**\n\nHNSW creates multi-layered skip-list graphs in vector space. Instead of comparing a query against 1,000,000 vectors (which takes 200ms), it jumps through sparse top layers and zooms in with logarithmic O(log N) complexity (~3ms latency).";
-      } else if (lower.includes("react") || lower.includes("agent") || lower.includes("loop")) {
-        aiReply = "🤖 **ReAct (Reason + Act) Loop Explained:**\n\n1. **Thought**: The model reasons over the user's intent.\n2. **Action**: The model outputs a JSON tool call.\n3. **Observation**: Backend executes tool & feeds result back.\n4. **Repeat**: Until the answer is fully synthesized.";
-      } else if (lower.includes("youtube") || lower.includes("course") || lower.includes("playlist")) {
-        aiReply = "📺 **Top Ranked YouTube Learning Materials:**\n\n1. **3Blue1Brown**: Linear Algebra & Neural Networks Visual Series\n2. **Hussein Nasser**: PostgreSQL pgvector & Database Internals\n3. **LangChain & Agno**: Multi-Agent Workflows & Tool Routing Architecture";
-      } else {
-        aiReply = `💡 **AI Roadmap Guidance on "${userText}":**\n\nTo master this concept effectively, focus on practical implementation before theoretical optimization. Check the ranked YouTube playlist on this node, and test your comprehension by building a minimal prototype!`;
+    if (getToken()) {
+      try {
+        const data = await apiSendChatMessage(userText);
+        if (data && data.reply) {
+          const botMsg = {
+            id: `msg_${Date.now() + 1}`,
+            sender: "assistant",
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            content: data.reply
+          };
+          setAssistantMessages(prev => [...prev, botMsg]);
+          return;
+        }
+      } catch (err) {
+        console.error('[HADES] AI Coach API error:', err);
+        const errMsg = {
+          id: `msg_${Date.now() + 1}`,
+          sender: "assistant",
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          content: `AI Coach request failed: ${err.message || 'Server error'}. Please verify backend connection.`
+        };
+        setAssistantMessages(prev => [...prev, errMsg]);
+        return;
       }
+    }
 
-      const botMsg = {
-        id: `msg_${Date.now() + 1}`,
-        sender: "assistant",
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        content: aiReply
-      };
-      setAssistantMessages(prev => [...prev, botMsg]);
-    }, 400);
-  };
+    const unauthMsg = {
+      id: `msg_${Date.now() + 1}`,
+      sender: "assistant",
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      content: "Please log in to chat with your personalized HADES AI Coach."
+    };
+    setAssistantMessages(prev => [...prev, unauthMsg]);
+  }, [recordProgressEvent]);
 
-  // Open the slideover AI assistant and optionally send an initial question
   const openAssistant = (initialPrompt = null) => {
     setIsAssistantOpen(true);
     if (initialPrompt && initialPrompt.trim()) {
@@ -223,12 +800,13 @@ export function LearnerProvider({ children }) {
   const doneBranchesCount = allBranches.filter(b => b.status === 'done').length;
   const roadmapProgressPercentage = allBranches.length > 0
     ? Math.round((doneBranchesCount / allBranches.length) * 100)
-    : 45;
+    : path?.overallProgress || progressStats?.overallProgressPercent || 0;
 
   return (
     <LearnerContext.Provider value={{
       profile,
       updateProfile,
+      mergeAuthUser,
       goal,
       updateGoal,
       path,
@@ -245,6 +823,7 @@ export function LearnerProvider({ children }) {
       toggleSaveResource,
       updateResourceProgress,
       milestones,
+      progressStats,
       assistantMessages,
       sendAssistantMessage,
       isAssistantOpen,
@@ -256,7 +835,19 @@ export function LearnerProvider({ children }) {
       isGeneratingPath,
       hasGeneratedRoadmap,
       setHasGeneratedRoadmap,
-      generateRoadmapForRole
+      generateRoadmapForRole,
+      loadAllData,
+      loadDashboard,
+      loadProfile,
+      loadResources,
+      loadSkills,
+      loadMilestones,
+      loadProgressStats,
+      loadProgressEvents,
+      loadActiveLearningPath,
+      submitOnboarding,
+      dashboardLoading,
+      dashboardError,
     }}>
       {children}
     </LearnerContext.Provider>

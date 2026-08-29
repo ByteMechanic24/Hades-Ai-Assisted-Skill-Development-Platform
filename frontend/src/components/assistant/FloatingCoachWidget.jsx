@@ -1,5 +1,6 @@
 import React from 'react';
-import { Bot, Sparkles } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Compass, X } from 'lucide-react';
 import { AssistantDrawer } from './AssistantDrawer';
 import { useLearner } from '../../context/LearnerContext';
 
@@ -8,26 +9,52 @@ export function FloatingCoachWidget() {
 
   return (
     <>
-      {/* Persistent Floating Bottom-Right Button */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2 pointer-events-auto">
+      {/* Persistent floating trigger, bottom-right */}
+      <div className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 pointer-events-auto">
         <button
-          onClick={() => isAssistantOpen ? closeAssistant() : openAssistant()}
-          className="group flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 text-white font-bold text-xs sm:text-sm shadow-[0_0_25px_rgba(99,102,241,0.5)] hover:shadow-[0_0_35px_rgba(6,182,212,0.6)] hover:scale-105 transition-all duration-200 border border-white/20 select-none"
+          type="button"
+          onClick={() => (isAssistantOpen ? closeAssistant() : openAssistant())}
+          aria-label={isAssistantOpen ? 'Close HADES AI Coach' : 'Open HADES AI Coach'}
+          className="group relative flex items-center gap-2.5 pl-3.5 pr-4 py-2.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-950 shadow-elev hover:scale-105 hover:-translate-y-0.5 transition-all duration-200 border border-slate-700 dark:border-slate-200 select-none"
         >
-          <div className="relative flex items-center justify-center">
-            <Bot className="w-5 h-5 group-hover:rotate-12 transition-transform duration-200" />
-            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-cyan-300 animate-ping" />
-          </div>
-          <span className="tracking-wide">AI Coach</span>
-          <Sparkles className="w-3.5 h-3.5 text-cyan-200 animate-pulse" />
+          <span className="relative flex items-center justify-center w-6 h-6 rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-sm">
+            <AnimatePresence mode="wait" initial={false}>
+              {isAssistantOpen ? (
+                <motion.span
+                  key="close"
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 90, opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex"
+                >
+                  <X className="w-3.5 h-3.5" strokeWidth={2.5} />
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="open"
+                  initial={{ rotate: 90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: -90, opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex"
+                >
+                  <Compass className="w-3.5 h-3.5" strokeWidth={2.5} />
+                </motion.span>
+              )}
+            </AnimatePresence>
+            {!isAssistantOpen && (
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-cyan-400 ring-2 ring-slate-900 dark:ring-white animate-pulse" />
+            )}
+          </span>
+          <span className="font-bold text-xs tracking-tight pr-0.5">
+            {isAssistantOpen ? 'Close Coach' : 'Ask Coach'}
+          </span>
         </button>
       </div>
 
-      {/* Contextual Slide-Over AI Chat Drawer */}
-      <AssistantDrawer
-        isOpen={isAssistantOpen}
-        onClose={closeAssistant}
-      />
+      {/* Contextual slide-over coach drawer */}
+      <AssistantDrawer isOpen={isAssistantOpen} onClose={closeAssistant} />
     </>
   );
 }

@@ -1,74 +1,90 @@
 import React from 'react';
-import { GlassCard, Badge } from '../ui';
-import { GitBranch, BrainCircuit, Sparkles, ShieldCheck, Zap, Layers, RefreshCw } from 'lucide-react';
+import { Eyebrow } from '../ui';
+import {
+  Brain,
+  GitBranch,
+  Search,
+  Code2,
+  TrendingUp,
+  ShieldCheck,
+  Cpu,
+  Layers,
+  Sparkles,
+  Award
+} from 'lucide-react';
 
 export function Features() {
-  const features = [
+  const pillars = [
+    {
+      icon: Brain,
+      color: 'indigo',
+      badge: 'Reasoning Engine',
+      badgeClass: 'text-indigo-700 dark:text-indigo-300 bg-indigo-500/10 border-indigo-500/30',
+      iconBox: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30',
+      title: 'Multi-Agent AI Reasoner',
+      desc: 'Orchestrates role taxonomies, baseline evaluations, and downstream dependency computations without model hallucinations.',
+    },
     {
       icon: GitBranch,
-      color: "from-indigo-500 to-cyan-500",
-      title: "Prerequisite Graph Modeling",
-      description: "Unlike static playlists, HADES models complex multi-directional skill dependencies. You never tackle advanced modules without mastering the foundational concepts."
+      color: 'violet',
+      badge: 'Topology Engine',
+      badgeClass: 'text-violet-700 dark:text-violet-300 bg-violet-500/10 border-violet-500/30',
+      iconBox: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/30',
+      title: 'Deterministic Knowledge Graphs',
+      desc: 'Enforces rigorous prerequisite ordering. Every node is mathematically grounded in verified engineering competency trees.',
     },
     {
-      icon: RefreshCw,
-      color: "from-cyan-500 to-emerald-500",
-      title: "Continuous Path Adaptation",
-      description: "Completing resources and mastering milestones triggers real-time graph recalculation. Your roadmap dynamically inserts reinforcement labs or accelerates forward."
+      icon: Search,
+      color: 'cyan',
+      badge: 'Resource Ranker',
+      badgeClass: 'text-cyan-700 dark:text-cyan-300 bg-cyan-500/10 border-cyan-500/30',
+      iconBox: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/30',
+      title: 'Curated Resource Synthesis',
+      desc: 'Scours technical whitepapers, ranked video deep-dives, and documentation to deliver the exact top resource per concept.',
     },
-    {
-      icon: Layers,
-      color: "from-blue-500 to-indigo-600",
-      title: "Multi-Modal Resource Ranking",
-      description: "Combines interactive sandboxes, video deep dives, research papers, and capstone blueprints, scored against your custom learning style and schedule."
-    },
-    {
-      icon: BrainCircuit,
-      color: "from-purple-500 to-indigo-500",
-      title: "Context-Aware AI Learning Coach",
-      description: "Your AI coach isn't a generic chatbot. It has instant access to your active node, current phase, and target role, answering 'Why is this next?' with precision."
-    },
-    {
-      icon: Zap,
-      color: "from-amber-500 to-rose-500",
-      title: "Interactive Branching Engine",
-      description: "Explore the roadmap.sh style interactive tree with instant hover status controllers (Learning, Done, Skip) and ranked YouTube videos."
-    },
-    {
-      icon: ShieldCheck,
-      color: "from-emerald-500 to-teal-500",
-      title: "Deterministic Engine Security",
-      description: "Scala backend enforces deterministic business logic and progress validation, while Python/Agno agents generate intelligent reasoning."
-    }
+     
+     
   ];
 
   return (
-    <section id="features" className="py-24 px-6 lg:px-12 relative">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <Badge variant="primary" size="md" className="mb-3">
-            Core Architecture
-          </Badge>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white font-display">
-            Built for Serious Skill Mastery, <br />
-            Not Passive Video Consumption
+    <section id="features" className="relative py-16 md:py-24">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-14">
+          <Eyebrow icon={Layers} variant="indigo" className="mb-2 justify-center">
+            System Architecture
+          </Eyebrow>
+          <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Engineered for Serious Technical Depth
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 mt-4 text-sm sm:text-base">
-            Every layer of the platform is designed to convert ambiguous career goals into measurable milestones and validated competencies.
+          <p className="mt-3 text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+            HADES combines reactive actor concurrency, deterministic graph solvers, and multi-modal ranking models to provide a true learning command center.
           </p>
         </div>
 
+        {/* 6-Pillar Multi-Color Architecture Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feat, i) => (
-            <GlassCard key={i} className="p-6 flex flex-col justify-between group border-slate-200 dark:border-slate-800/80 hover:border-indigo-500/40 shadow-sm dark:shadow-none">
+          {pillars.map((p) => (
+            <div
+              key={p.title}
+              className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#121620] p-6 shadow-card hover:shadow-elev hover:border-indigo-500/30 transition-all duration-200 flex flex-col justify-between"
+            >
               <div>
-                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${feat.color} flex items-center justify-center text-white mb-5 shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition duration-300`}>
-                  <feat.icon className="w-6 h-6" />
+                <div className="flex items-center justify-between gap-2 mb-4">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${p.iconBox}`}>
+                    <p.icon className="w-5 h-5" />
+                  </div>
+                  <span className={`mono-label text-[12px] px-2 py-0.5 rounded-md border font-bold ${p.badgeClass}`}>
+                    {p.badge}
+                  </span>
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 font-display">{feat.title}</h3>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{feat.description}</p>
+                <h3 className="font-display text-base font-bold text-slate-900 dark:text-white mb-2">
+                  {p.title}
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {p.desc}
+                </p>
               </div>
-            </GlassCard>
+            </div>
           ))}
         </div>
       </div>
