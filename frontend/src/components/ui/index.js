@@ -1,4 +1,5 @@
 export { Button, Badge, GlassCard } from './Button';
+export { BrandLogo } from './BrandLogo';
 export {
   Eyebrow,
   SectionHeader,
@@ -7,6 +8,5 @@ export {
   ProgressBar,
   ProgressRing,
   Kbd,
-  Skeleton,
   EmptyState,
 } from './Primitives';

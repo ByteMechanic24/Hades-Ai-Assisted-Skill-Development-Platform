@@ -3,34 +3,75 @@
 @tailwind utilities;
 
 /*
-  HADES — mission control for a technical career.
-  Design language: neutral near-black canvas, one signal-amber accent,
-  editorial typography, hairline dividers, restrained glass.
+  HADES — Multi-Color Brand Visual Identity System
+  Core Brand: Deep Navy / Slate neutral foundation + Electric Indigo & Electric Violet
+  Page Worlds:
+    - Landing: Innovation (Indigo + Violet + Cyan)
+    - Auth: Trust & Security (Deep Navy + Indigo)
+    - Onboarding: Progressive Identity (Indigo -> Violet -> Cyan -> Teal)
+    - Dashboard: Command Center (Deep Navy / Indigo / Cyan / Emerald)
+    - Learning Path: Journey (Violet + Indigo + Cyan + Emerald)
+    - Resources: Exploration (Cyan + Teal + Violet)
+    - Assessments: Challenge (Coral + Rose + Indigo)
+    - Progress & Milestones: Growth & Achievement (Emerald + Teal + Blue)
+    - AI Assistant: Intelligence (Electric Violet + Indigo + Cyan)
 */
 
 @layer base {
   :root {
-    --bg-main: transparent;          /* fallback */
-    --bg-main-solid: #fafaf9;
-    --bg-overlay: rgba(250, 250, 249, 0.50); /* significantly lighter overlay */
-    --bg-elevated: rgba(255, 255, 255, 0.75); /* translucent surfaces */
-    --text-main: #1c1917;
-    --text-muted: #57534e;
-    --line: rgba(0, 0, 0, 0.08);
-    --accent: #b45309;           /* deep amber for legible accent text on light */
-    --accent-bright: #f59e0b;
+    --bg-canvas: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-surface-elevated: #f1f5f9;
+    --bg-surface-subtle: #e2e8f0;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --text-subtle: #94a3b8;
+    --line: rgba(15, 23, 42, 0.08);
+    --line-strong: rgba(15, 23, 42, 0.16);
+
+    /* Core Semantic Brand Tokens */
+    --brand-indigo: #4f46e5;
+    --brand-violet: #7c3aed;
+    --brand-cyan: #0891b2;
+    --brand-teal: #0d9488;
+    --brand-emerald: #059669;
+    --brand-coral: #e11d48;
+    --brand-amber: #4f46e5;
+
+    --brand-indigo-soft: rgba(79, 70, 229, 0.08);
+    --brand-violet-soft: rgba(124, 58, 237, 0.08);
+    --brand-cyan-soft: rgba(8, 145, 178, 0.08);
+    --brand-teal-soft: rgba(13, 148, 136, 0.08);
+    --brand-emerald-soft: rgba(5, 150, 105, 0.08);
+    --brand-coral-soft: rgba(225, 29, 72, 0.08);
   }
 
   .dark {
-    --bg-main: transparent;
-    --bg-main-solid: #0a0a0b;
-    --bg-overlay: rgba(10, 10, 11, 0.45); /* significantly darker but translucent overlay */
-    --bg-elevated: rgba(20, 20, 22, 0.70); /* translucent surfaces */
-    --text-main: #f5f5f4;
-    --text-muted: #a1a1aa;
+    --bg-canvas: #0b0d13;
+    --bg-surface: #121620;
+    --bg-surface-elevated: #181e2c;
+    --bg-surface-subtle: #222a3d;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-subtle: #64748b;
     --line: rgba(255, 255, 255, 0.08);
-    --accent: #fbbf24;
-    --accent-bright: #fbbf24;
+    --line-strong: rgba(255, 255, 255, 0.14);
+
+    /* Core Semantic Brand Tokens */
+    --brand-indigo: #818cf8;
+    --brand-violet: #a78bfa;
+    --brand-cyan: #22d3ee;
+    --brand-teal: #2dd4bf;
+    --brand-emerald: #34d399;
+    --brand-coral: #fb7185;
+    --brand-amber: #818cf8;
+
+    --brand-indigo-soft: rgba(99, 102, 241, 0.12);
+    --brand-violet-soft: rgba(139, 92, 246, 0.12);
+    --brand-cyan-soft: rgba(6, 182, 212, 0.12);
+    --brand-teal-soft: rgba(20, 184, 166, 0.12);
+    --brand-emerald-soft: rgba(16, 185, 129, 0.12);
+    --brand-coral-soft: rgba(244, 63, 94, 0.12);
   }
 
   * {
@@ -45,38 +86,14 @@
 
   body {
     margin: 0;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background-color: var(--bg-main-solid);
-    background-image: url('/hades-background.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
+    font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-canvas);
     color: var(--text-main);
     overflow-x: hidden;
-    transition: color 0.25s ease;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 
-  /* Global thematic overlay so the image is visible but text remains highly readable */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background-color: var(--bg-overlay);
-    backdrop-filter: blur(2px); /* Very subtle atmospheric blur */
-    transition: background-color 0.25s ease;
-  }
-
-  /* App content always paints above the background */
-  #root {
-    position: relative;
-    z-index: 1;
-    min-height: 100vh;
-  }
-
-  /* Extremely subtle top vignette — depth without colored "AI glow" */
+  /* Sophisticated ambient lighting: subtle indigo & violet depth */
   body::before {
     content: '';
     position: fixed;
@@ -84,164 +101,146 @@
     pointer-events: none;
     z-index: 0;
     background:
-      radial-gradient(120% 80% at 50% -10%, rgba(245, 158, 11, 0.05), transparent 60%),
-      radial-gradient(80% 60% at 100% 0%, rgba(255, 255, 255, 0.02), transparent 55%);
+      radial-gradient(100% 60% at 50% -5%, rgba(99, 102, 241, 0.035), transparent 50%),
+      radial-gradient(70% 40% at 95% 15%, rgba(139, 92, 246, 0.025), transparent 45%),
+      radial-gradient(80% 50% at 5% 40%, rgba(6, 182, 212, 0.02), transparent 40%);
+  }
+
+  .dark body::before {
+    background:
+      radial-gradient(100% 60% at 50% -5%, rgba(99, 102, 241, 0.06), transparent 50%),
+      radial-gradient(70% 40% at 95% 15%, rgba(139, 92, 246, 0.045), transparent 45%),
+      radial-gradient(80% 50% at 5% 40%, rgba(6, 182, 212, 0.03), transparent 40%);
+  }
+
+  #root {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
   }
 
   ::selection {
-    background: #fbbf24;
-    color: #0a0a0b;
+    background: #6366f1;
+    color: #ffffff;
   }
 
-  h1, h2, h3, h4, h5 {
-    font-family: '"Space Grotesk"', 'Space Grotesk', Inter, system-ui, sans-serif;
-    letter-spacing: -0.01em;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .font-display {
+    font-family: 'Outfit', 'Urbanist', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  .font-editorial,
+  .font-fraunces {
+    font-family: 'Fraunces', 'Lora', Georgia, serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    letter-spacing: -0.015em;
+  }
+
+  .font-lora {
+    font-family: 'Lora', Georgia, serif;
+    font-optical-sizing: auto;
+  }
+
+  .font-outfit {
+    font-family: 'Outfit', sans-serif;
+    font-optical-sizing: auto;
+  }
+
+  .font-manrope {
+    font-family: 'Manrope', sans-serif;
+    font-optical-sizing: auto;
+  }
+
+  .font-urbanist {
+    font-family: 'Urbanist', sans-serif;
+    font-optical-sizing: auto;
   }
 }
 
 @layer components {
-  /* Uppercase, tracked, monospaced eyebrow label — the "telemetry" voice */
-  .mono-label {
-    font-family: '"JetBrains Mono"', ui-monospace, monospace;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    font-size: 0.6875rem;
-    line-height: 1;
-  }
 
-  /* Flat editorial surface — replacing heavy glass cards, made slightly translucent to let world bleed through */
-  .surface-card {
-    background: var(--bg-elevated);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--line);
-    border-radius: 0.875rem;
-  }
-
-  /* Restrained glass — used ONLY for sticky nav / floating overlays */
+  /* Subtle glass surfaces */
   .glass-panel {
-    background: rgba(250, 250, 249, 0.72);
-    backdrop-filter: blur(16px) saturate(140%);
-    -webkit-backdrop-filter: blur(16px) saturate(140%);
-    border-bottom: 1px solid var(--line);
-  }
-  .dark .glass-panel {
-    background: rgba(10, 10, 11, 0.72);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  /* Legacy aliases kept so nothing regresses — restyled to the flat system */
-  .glass-card {
-    background: var(--bg-elevated);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--line);
-    border-radius: 0.875rem;
-    transition: border-color 0.2s ease, transform 0.2s ease;
-  }
-  .glass-card:hover {
-    border-color: rgba(245, 158, 11, 0.35);
   }
 
-  .glow-indigo,
-  .glow-cyan,
-  .glow-emerald {
-    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.18);
+  .dark .glass-panel {
+    background: rgba(18, 22, 32, 0.80);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--line);
   }
 
-  /* Blueprint grid — subtle backdrop for hero / roadmap sections */
+  /* Card surface hierarchy */
+  .surface-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  }
+
+  .surface-elevated {
+    background-color: var(--bg-surface-elevated);
+    border: 1px solid var(--line-strong);
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+  }
+
+  /* Micro-patterns for texture without large images */
   .bg-grid {
     background-image:
       linear-gradient(to right, var(--line) 1px, transparent 1px),
       linear-gradient(to bottom, var(--line) 1px, transparent 1px);
-    background-size: 44px 44px;
-    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
-    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+    background-size: 32px 32px;
   }
 
   .bg-dots {
-    background-image: radial-gradient(var(--line) 1px, transparent 1px);
-    background-size: 22px 22px;
+    background-image: radial-gradient(var(--line-strong) 1px, transparent 1px);
+    background-size: 20px 20px;
   }
 
-  /* Amber → foreground text sweep for select headline words (used sparingly) */
-  .text-gradient,
-  .gradient-text {
-    background: linear-gradient(100deg, #f59e0b 0%, #fbbf24 50%, var(--text-main) 130%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+  /* Disciplined mono labels */
+  .mono-label {
+    font-family: '"JetBrains Mono"', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
 
-  /* Skeleton shimmer for loading states */
-  .skeleton {
-    background: linear-gradient(
-      100deg,
-      var(--line) 20%,
-      rgba(255, 255, 255, 0.08) 40%,
-      var(--line) 60%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.6s ease-in-out infinite;
-    border-radius: 0.5rem;
+  /* Scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
   }
-  :root .skeleton {
-    background: linear-gradient(
-      100deg,
-      rgba(0, 0, 0, 0.05) 20%,
-      rgba(0, 0, 0, 0.09) 40%,
-      rgba(0, 0, 0, 0.05) 60%
-    );
-    background-size: 200% 100%;
-  }
-  .dark .skeleton {
-    background: linear-gradient(
-      100deg,
-      rgba(255, 255, 255, 0.04) 20%,
-      rgba(255, 255, 255, 0.10) 40%,
-      rgba(255, 255, 255, 0.04) 60%
-    );
-    background-size: 200% 100%;
-  }
-}
 
-/* Custom scrollbars — quiet, neutral */
-::-webkit-scrollbar {
-  width: 9px;
-  height: 9px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #d6d3d1;
-  border-radius: 9999px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-.dark ::-webkit-scrollbar-thumb {
-  background: #2a2a30;
-  border-radius: 9999px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #a8a29e;
-  background-clip: padding-box;
-}
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
-  background-clip: padding-box;
-}
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
-/* Honor reduced-motion preferences */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  ::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.35);
+    border-radius: 9999px;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.6);
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
   }
 }

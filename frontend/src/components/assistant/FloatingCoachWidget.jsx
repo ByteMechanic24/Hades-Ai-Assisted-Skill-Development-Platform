@@ -12,11 +12,12 @@ export function FloatingCoachWidget() {
       {/* Persistent floating trigger, bottom-right */}
       <div className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-40 pointer-events-auto">
         <button
+          type="button"
           onClick={() => (isAssistantOpen ? closeAssistant() : openAssistant())}
-          aria-label={isAssistantOpen ? 'Close HADES Coach' : 'Open HADES Coach'}
-          className="group relative flex items-center gap-2.5 pl-3.5 pr-4 py-3 rounded-full bg-stone-900 dark:bg-white text-white dark:text-stone-950 shadow-lg shadow-stone-900/20 dark:shadow-black/40 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 border border-white/10 dark:border-black/5 select-none"
+          aria-label={isAssistantOpen ? 'Close HADES AI Coach' : 'Open HADES AI Coach'}
+          className="group relative flex items-center gap-2.5 pl-3.5 pr-4 py-2.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-950 shadow-elev hover:scale-105 hover:-translate-y-0.5 transition-all duration-200 border border-slate-700 dark:border-slate-200 select-none"
         >
-          <span className="relative flex items-center justify-center w-6 h-6 rounded-lg bg-amber-500 text-stone-950">
+          <span className="relative flex items-center justify-center w-6 h-6 rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-sm">
             <AnimatePresence mode="wait" initial={false}>
               {isAssistantOpen ? (
                 <motion.span
@@ -43,11 +44,11 @@ export function FloatingCoachWidget() {
               )}
             </AnimatePresence>
             {!isAssistantOpen && (
-              <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-amber-400 ring-2 ring-stone-900 dark:ring-white animate-pulse" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-cyan-400 ring-2 ring-slate-900 dark:ring-white animate-pulse" />
             )}
           </span>
-          <span className="font-medium text-[13px] tracking-tight pr-0.5">
-            {isAssistantOpen ? 'Close' : 'Ask Coach'}
+          <span className="font-bold text-xs tracking-tight pr-0.5">
+            {isAssistantOpen ? 'Close Coach' : 'Ask Coach'}
           </span>
         </button>
       </div>

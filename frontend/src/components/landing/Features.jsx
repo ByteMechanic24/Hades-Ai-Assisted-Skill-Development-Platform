@@ -1,83 +1,92 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Eyebrow } from '../ui';
-import { GitBranch, BrainCircuit, ShieldCheck, Zap, Layers, RefreshCw } from 'lucide-react';
-import { fadeUp, staggerContainer } from '../../utils/motion';
+import {
+  Brain,
+  GitBranch,
+  Search,
+  Code2,
+  TrendingUp,
+  ShieldCheck,
+  Cpu,
+  Layers,
+  Sparkles,
+  Award
+} from 'lucide-react';
 
 export function Features() {
-  const features = [
+  const pillars = [
+    {
+      icon: Brain,
+      color: 'indigo',
+      badge: 'Reasoning Engine',
+      badgeClass: 'text-indigo-700 dark:text-indigo-300 bg-indigo-500/10 border-indigo-500/30',
+      iconBox: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30',
+      title: 'Multi-Agent AI Reasoner',
+      desc: 'Orchestrates role taxonomies, baseline evaluations, and downstream dependency computations without model hallucinations.',
+    },
     {
       icon: GitBranch,
-      title: 'Prerequisite graph modeling',
-      description:
-        'Not a static playlist. HADES models multi-directional skill dependencies, so you never hit an advanced module without its foundations in place.',
+      color: 'violet',
+      badge: 'Topology Engine',
+      badgeClass: 'text-violet-700 dark:text-violet-300 bg-violet-500/10 border-violet-500/30',
+      iconBox: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/30',
+      title: 'Deterministic Knowledge Graphs',
+      desc: 'Enforces rigorous prerequisite ordering. Every node is mathematically grounded in verified engineering competency trees.',
     },
     {
-      icon: RefreshCw,
-      title: 'Continuous path adaptation',
-      description:
-        'Completing work and passing milestones triggers a real-time graph recalculation — the roadmap inserts reinforcement or fast-forwards you.',
+      icon: Search,
+      color: 'cyan',
+      badge: 'Resource Ranker',
+      badgeClass: 'text-cyan-700 dark:text-cyan-300 bg-cyan-500/10 border-cyan-500/30',
+      iconBox: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/30',
+      title: 'Curated Resource Synthesis',
+      desc: 'Scours technical whitepapers, ranked video deep-dives, and documentation to deliver the exact top resource per concept.',
     },
-    {
-      icon: Layers,
-      title: 'Multi-modal resource ranking',
-      description:
-        'Sandboxes, video deep-dives, papers, and capstone blueprints — each scored against your learning style, schedule, and current gaps.',
-    },
-    {
-      icon: BrainCircuit,
-      title: 'Context-aware coach',
-      description:
-        'Not a generic chatbot. The coach knows your active node, current phase, and target role — so it answers "why this next?" with precision.',
-    },
-    {
-      icon: Zap,
-      title: 'Interactive branching engine',
-      description:
-        'Explore an interactive tree with inline status controls — Learning, Done, Skip — plus ranked videos and articles per node.',
-    },
-    {
-      icon: ShieldCheck,
-      title: 'Deterministic core',
-      description:
-        'A Scala backend enforces deterministic business logic and progress validation, while Agno agents handle the intelligent reasoning.',
-    },
+     
+     
   ];
 
   return (
-    <section id="features" className="py-20 sm:py-24 px-5 lg:px-8 relative">
-      <div className="max-w-6xl mx-auto">
-        <div className="max-w-2xl mb-14">
-          <Eyebrow className="mb-3">Core architecture</Eyebrow>
-          <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-stone-900 dark:text-white leading-tight">
-            Built for mastery, not passive video consumption.
+    <section id="features" className="relative py-16 md:py-24">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-14">
+          <Eyebrow icon={Layers} variant="indigo" className="mb-2 justify-center">
+            System Architecture
+          </Eyebrow>
+          <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Engineered for Serious Technical Depth
           </h2>
-          <p className="text-stone-600 dark:text-stone-400 mt-4 text-sm sm:text-base leading-relaxed">
-            Every layer converts an ambiguous career goal into measurable milestones and validated competencies.
+          <p className="mt-3 text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+            HADES combines reactive actor concurrency, deterministic graph solvers, and multi-modal ranking models to provide a true learning command center.
           </p>
         </div>
 
-        <motion.div
-          variants={staggerContainer(0.06)}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: '-80px' }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px rounded-2xl overflow-hidden border border-stone-200 dark:border-white/[0.08] bg-stone-200 dark:bg-white/[0.08]"
-        >
-          {features.map((feat, i) => (
-            <motion.div
-              key={i}
-              variants={fadeUp}
-              className="group bg-white dark:bg-[#0d0d0f] p-6 sm:p-7 hover:bg-stone-50 dark:hover:bg-white/[0.02] transition-colors"
+        {/* 6-Pillar Multi-Color Architecture Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {pillars.map((p) => (
+            <div
+              key={p.title}
+              className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#121620] p-6 shadow-card hover:shadow-elev hover:border-indigo-500/30 transition-all duration-200 flex flex-col justify-between"
             >
-              <div className="w-10 h-10 rounded-lg bg-stone-100 dark:bg-white/[0.05] border border-stone-200 dark:border-white/10 flex items-center justify-center text-stone-700 dark:text-stone-300 group-hover:border-amber-500/40 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors mb-5">
-                <feat.icon className="w-5 h-5" />
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-4">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${p.iconBox}`}>
+                    <p.icon className="w-5 h-5" />
+                  </div>
+                  <span className={`mono-label text-[12px] px-2 py-0.5 rounded-md border font-bold ${p.badgeClass}`}>
+                    {p.badge}
+                  </span>
+                </div>
+                <h3 className="font-display text-base font-bold text-slate-900 dark:text-white mb-2">
+                  {p.title}
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {p.desc}
+                </p>
               </div>
-              <h3 className="font-display text-base font-semibold text-stone-900 dark:text-white mb-2">{feat.title}</h3>
-              <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed">{feat.description}</p>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

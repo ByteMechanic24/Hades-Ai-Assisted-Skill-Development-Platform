@@ -1,184 +1,206 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Button } from '../ui';
-import { ArrowRight, GitBranch, Play, Search, Wand2, CornerDownLeft } from 'lucide-react';
-import { useLearner } from '../../context/LearnerContext';
-import { IMAGERY } from '../../utils/media';
-import { fadeUp, staggerContainer } from '../../utils/motion';
+import {
+  ArrowRight,
+  Sparkles,
+  GitBranch,
+  Target,
+  Search,
+  CheckCircle2,
+  Cpu,
+  Layers,
+  Zap,
+  Activity,
+  Code2,
+  Terminal,
+  Sliders,
+  Compass
+} from 'lucide-react';
+
+const SUGGESTED_ROLES = [
+  'Autonomous AI Agent Engineer',
+  'Enterprise RAG & Search Architect',
+  'Full-Stack LLM Developer',
+  'Production MLOps Engineer',
+];
 
 export function Hero() {
   const navigate = useNavigate();
-  const { generateRoadmapForRole } = useLearner();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [roleQuery, setRoleQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('graph'); // 'graph' | 'telemetry' | 'code'
 
-  const suggestedRoles = [
-    'Autonomous AI Agent Engineer',
-    'Enterprise RAG & Search Architect',
-    'Full-Stack LLM Developer',
-    'MLOps & Cloud-Native Systems',
-  ];
-
-  const handleSearchAndGetRoadmap = (e, roleToUse = null) => {
-    if (e) e.preventDefault();
-    const query = (roleToUse || searchQuery || 'Autonomous AI Systems Engineer').trim();
-    if (!query) return;
-
-    setIsSubmitting(true);
-    generateRoadmapForRole(query);
-
-    // Instant smooth redirect to roadmap screen for first-time searchers
-    setTimeout(() => {
-      setIsSubmitting(false);
-      navigate('/dashboard/learning-path');
-    }, 450);
+  const handleStartWithRole = (role) => {
+    navigate(`/onboarding?role=${encodeURIComponent(role)}`);
   };
 
-  const stats = [
-    { value: 'Goal-first', label: 'Not a course catalog' },
-    { value: 'Agno AI', label: 'Multi-agent reasoner' },
-    { value: 'Prereq graph', label: 'Deterministic ordering' },
-    { value: 'Real-time', label: 'Adapts as you build' },
-  ];
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (!roleQuery.trim()) return;
+    handleStartWithRole(roleQuery.trim());
+  };
 
   return (
-    <section className="relative pt-32 pb-16 sm:pt-40 sm:pb-20 px-5 lg:px-8 overflow-hidden">
+    <section className="relative overflow-hidden pt-12 pb-24 md:pt-20 md:pb-32">
+      {/* Ambient background lighting */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[720px] h-[440px] bg-gradient-to-tr from-indigo-500/15 via-violet-500/10 to-cyan-500/05 blur-3xl pointer-events-none rounded-full" />
 
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Main Headline: Bold, Large, Editorial Fraunces Typography */}
+        <div className="text-center max-w-4xl mx-auto">
+          <h1 className="font-fraunces text-4xl sm:text-6xl lg:text-[68px] font-bold tracking-tight text-slate-900 dark:text-white leading-[1.06]">
+            Stop collecting courses.<br />
+            <span className="bg-gradient-to-r from-[#5B50E5] via-indigo-500 to-violet-600 bg-clip-text text-transparent italic">
+              Start shipping proof.
+            </span>
+          </h1>
 
-      <motion.div
-        variants={staggerContainer(0.08)}
-        initial="hidden"
-        animate="show"
-        className="relative max-w-3xl mx-auto text-center"
-      >
-        {/* Eyebrow */}
-        <motion.div variants={fadeUp} className="flex justify-center mb-6">
-          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-stone-200 dark:border-white/10 bg-white/60 dark:bg-white/[0.03] backdrop-blur">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-            <span className="mono-label text-stone-500 dark:text-stone-400">HCLTech Hackathon 2026 · Adaptive skill architecture</span>
-          </span>
-        </motion.div>
+          <p className="mt-6 text-base sm:text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            HADES turns your target career role into a live prerequisite graph, connects the exact competencies you need, and adapts dynamically as you complete checkpoints.
+          </p>
+        </div>
 
-        {/* Headline */}
-        <motion.h1
-          variants={fadeUp}
-          className="font-display text-4xl sm:text-6xl font-bold tracking-tight text-stone-900 dark:text-white leading-[1.05]"
-        >
-          Stop collecting courses.
-          <br />
-          Start shipping <span className="text-amber-500">proof</span>.
-        </motion.h1>
-
-        <motion.p
-          variants={fadeUp}
-          className="mt-6 text-base sm:text-lg text-stone-600 dark:text-stone-400 max-w-2xl mx-auto leading-relaxed"
-        >
-          HADES turns a career goal into a real project, maps the exact skills that project demands, and charts a
-          prerequisite path that adapts as you build — so every hour moves you toward the role, not the certificate.
-        </motion.p>
-
-        {/* Search → roadmap */}
-        <motion.div variants={fadeUp} className="mt-9 max-w-xl mx-auto">
+        {/* Interactive Target Role Input */}
+        <div className="mt-10 max-w-2xl mx-auto">
           <form
-            onSubmit={handleSearchAndGetRoadmap}
-            className="relative flex items-center gap-2 p-2 rounded-xl bg-white dark:bg-[#141416] border border-stone-300 dark:border-white/10 shadow-elev focus-within:border-amber-500 dark:focus-within:border-amber-500 transition-colors"
+            onSubmit={handleSearchSubmit}
+            className="flex flex-col sm:flex-row items-stretch gap-2.5 p-2 rounded-2xl bg-white dark:bg-[#121620] border border-slate-200 dark:border-white/10 shadow-card focus-within:border-indigo-500/60 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all"
           >
-            <Search className="w-4.5 h-4.5 text-stone-400 dark:text-stone-500 ml-2.5 shrink-0" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Name the role you're chasing…"
-              className="w-full bg-transparent px-1 py-2 text-sm sm:text-base text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none"
-            />
-            <Button type="submit" variant="primary" size="md" isLoading={isSubmitting} icon={ArrowRight} className="shrink-0">
-              Build path
+            <div className="relative flex-1 flex items-center pl-3.5">
+              <Search className="w-5 h-5 text-slate-400 dark:text-slate-500 shrink-0" />
+              <input
+                type="text"
+                value={roleQuery}
+                onChange={(e) => setRoleQuery(e.target.value)}
+                placeholder="Name the role you are chasing (e.g. AI Systems Engineer)..."
+                className="w-full bg-transparent border-none text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none pl-3 pr-2 py-2.5"
+              />
+            </div>
+            <Button type="submit" variant="primary" size="lg" icon={ArrowRight} className="shrink-0 bg-[#5B50E5] hover:bg-[#4E44D4] text-white">
+              Build Path
             </Button>
           </form>
 
-          {/* Suggested roles */}
+          {/* Quick suggestions */}
           <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
-            <span className="mono-label text-stone-400 dark:text-stone-500">Popular:</span>
-            {suggestedRoles.map((role) => (
+            <span className="mono-label text-slate-400 dark:text-slate-500 text-[11px] font-semibold mr-1">TRENDING:</span>
+            {SUGGESTED_ROLES.map((role) => (
               <button
                 key={role}
                 type="button"
-                onClick={() => {
-                  setSearchQuery(role);
-                  handleSearchAndGetRoadmap(null, role);
-                }}
-                className="group text-xs px-2.5 py-1 rounded-full bg-stone-100 dark:bg-white/[0.03] text-stone-600 dark:text-stone-300 hover:text-amber-700 dark:hover:text-amber-300 border border-stone-200 dark:border-white/10 hover:border-amber-500/40 transition flex items-center gap-1.5"
+                onClick={() => handleStartWithRole(role)}
+                className="mono-label text-[11px] px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/10 hover:border-indigo-500/40 hover:text-indigo-600 dark:hover:text-indigo-300 transition-all font-semibold"
               >
-                <GitBranch className="w-3 h-3 text-stone-400 group-hover:text-amber-500 transition-colors" />
                 {role}
               </button>
             ))}
           </div>
-        </motion.div>
 
-        {/* Secondary CTAs */}
-        <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
-          <Link to="/onboarding" className="w-full sm:w-auto">
-            <Button size="md" variant="secondary" icon={Wand2} className="w-full">
-              Custom path wizard
-            </Button>
-          </Link>
-          <Link to="/dashboard" className="w-full sm:w-auto">
-            <Button size="md" variant="ghost" icon={Play} className="w-full border border-stone-200 dark:border-white/10">
-              Explore the workspace
-            </Button>
-          </Link>
-        </motion.div>
-      </motion.div>
-
-      {/* Framed real workspace image — a developer building, not AI clip-art */}
-      <motion.div
-        variants={fadeUp}
-        initial="hidden"
-        animate="show"
-        transition={{ delay: 0.2 }}
-        className="relative max-w-5xl mx-auto mt-16"
-      >
-        <div className="relative rounded-2xl overflow-hidden border border-stone-200 dark:border-white/[0.08] bg-stone-100 dark:bg-[#101013] shadow-elev">
-          {/* window chrome */}
-          <div className="flex items-center gap-1.5 px-4 h-10 border-b border-stone-200 dark:border-white/[0.08] bg-white/80 dark:bg-white/[0.02]">
-            <span className="w-2.5 h-2.5 rounded-full bg-stone-300 dark:bg-white/15" />
-            <span className="w-2.5 h-2.5 rounded-full bg-stone-300 dark:bg-white/15" />
-            <span className="w-2.5 h-2.5 rounded-full bg-stone-300 dark:bg-white/15" />
-            <span className="mono-label text-stone-400 dark:text-stone-500 ml-3">hades — mission control</span>
+          {/* Action Link Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-6">
+            <Link to="/onboarding" className="w-full sm:w-auto">
+              <Button variant="secondary" size="md" icon={Sliders} className="w-full sm:w-auto border-slate-200 dark:border-white/10">
+                Custom Path Wizard
+              </Button>
+            </Link>
+            <Link to="/dashboard" className="w-full sm:w-auto">
+              <Button variant="secondary" size="md" icon={Compass} className="w-full sm:w-auto border-slate-200 dark:border-white/10">
+                Explore Live Workspace
+              </Button>
+            </Link>
           </div>
-          <div className="relative aspect-[16/8] overflow-hidden">
-            <img
-              src={IMAGERY.heroWorkspace}
-              alt="A developer building software at a multi-monitor workstation"
-              className="absolute inset-0 w-full h-full object-cover"
-              loading="lazy"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-stone-950/70 via-transparent to-transparent" />
-            <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4">
-              <div>
-                <span className="mono-label text-amber-400">Now building</span>
-                <p className="text-white font-display font-semibold text-sm sm:text-base mt-1">
-                  Retrieval-augmented agent · Phase 2 of 4
-                </p>
+        </div>
+
+        {/* ================================================= Interactive Telemetry Window */}
+        <div className="mt-14 max-w-4xl mx-auto">
+          <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#121620] shadow-elev overflow-hidden">
+            {/* Window header */}
+            <div className="flex items-center justify-between px-5 sm:px-7 py-3.5 border-b border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-white/[0.02]">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
+                <span className="w-2.5 h-2.5 rounded-full bg-indigo-500/80" />
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
+                <span className="mono-label text-xs text-slate-600 dark:text-slate-300 ml-2 font-bold">
+                  HADES  MISSION BRIEFING &amp; PATH ENGINE
+                </span>
               </div>
-              <span className="hidden sm:inline-flex mono-label text-[10px] text-white/70 border border-white/20 rounded px-2 py-1 backdrop-blur">
-                45% complete
-              </span>
+
+            </div>
+
+            {/* Window Content */}
+            <div className="p-6 sm:p-8">
+              {activeTab === 'graph' && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-xl border border-indigo-500/30 bg-indigo-500/[0.04]">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="mono-label text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">Stage 01 · Baseline</span>
+                      {/* <CheckCircle2 className="w-4 h-4 text-emerald-500" /> */}
+                    </div>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">Vector Math &amp; Embeddings</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                      Cosine distance, dot products, and latent matrix transformations.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl border border-violet-500/40 bg-violet-500/[0.06] shadow-sm relative">
+                    {/* <span className="absolute -top-2 right-3 mono-label text-[8px] font-bold px-2 py-0.5 rounded bg-[#5B50E5] text-white">
+                      IN PROGRESS
+                    </span> */}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="mono-label text-[10px] text-violet-600 dark:text-violet-400 font-bold">Stage 02 · Retrieval</span>
+                      {/* <Sparkles className="w-4 h-4 text-violet-500 animate-pulse" /> */}
+                    </div>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">pgvector &amp; HNSW Indexing</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                      Sub-10ms approximate nearest neighbor query execution in PostgreSQL.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.01]">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="mono-label text-[10px] text-slate-400 dark:text-slate-500 font-medium">Stage 03 · Queued</span>
+                      {/* <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-white/20" /> */}
+                    </div>
+                    <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">ReAct Agent Orchestration</h4>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 leading-relaxed">
+                      Tool calling, cyclic observation steps, and state rollbacks.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'telemetry' && (
+                <div className="font-mono text-xs space-y-2.5 p-4 rounded-xl bg-slate-950 text-slate-200 border border-slate-800">
+                  <div className="text-emerald-400 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                    [2026-08-28 01:42:00] DISPATCH: LearnerCompletedCheckpoint (node: pgvector-hnsw-01)
+                  </div>
+                  <div className="text-cyan-300 pl-4">
+                    → Evaluating downstream dependencies: 4 branch nodes recalculated in 18ms
+                  </div>
+                  <div className="text-violet-400 pl-4">
+                    → AI Reasoner assigned confidence score: 88.5% (+12.4% gain)
+                  </div>
+                  <div className="text-slate-400 pl-4">
+                    → Next optimal resource scheduled: &quot;Deep Dive: Hierarchical Navigable Small Worlds&quot;
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'code' && (
+                <div className="font-mono text-xs space-y-1.5 p-4 rounded-xl bg-slate-950 text-slate-300 border border-slate-800 overflow-x-auto">
+                  <span className="text-violet-400 font-bold">package</span> hades.learning.actors<br />
+                  <span className="text-indigo-400 font-bold">case class</span> <span className="text-emerald-300">AdaptiveRoadmapState</span>(<br />
+                  &nbsp;&nbsp;learnerId: <span className="text-cyan-300">UUID</span>,<br />
+                  &nbsp;&nbsp;targetRole: <span className="text-cyan-300">String</span> = <span className="text-violet-300">&quot;Autonomous AI Systems Engineer&quot;</span>,<br />
+                  &nbsp;&nbsp;masteryVector: <span className="text-cyan-300">Map[SkillId, Double]</span>,<br />
+                  &nbsp;&nbsp;graphConfidence: <span className="text-violet-300">0.885</span><br />
+                  )
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </motion.div>
-
-      {/* Stat rail */}
-      <div className="relative max-w-5xl mx-auto mt-10 grid grid-cols-2 md:grid-cols-4 divide-x divide-stone-200 dark:divide-white/[0.08] border-t border-stone-200 dark:border-white/[0.08] pt-6">
-        {stats.map((s) => (
-          <div key={s.label} className="px-4 text-center md:text-left first:pl-0">
-            <div className="font-display text-lg sm:text-xl font-semibold text-stone-900 dark:text-white">{s.value}</div>
-            <div className="mono-label text-stone-400 dark:text-stone-500 mt-1">{s.label}</div>
-          </div>
-        ))}
       </div>
     </section>
   );

@@ -1,97 +1,100 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Radar, ArrowRight, Menu, X } from 'lucide-react';
-import { Button } from '../ui';
+import { Button, BrandLogo } from '../ui';
 import { ThemeToggle } from '../ui/ThemeToggle';
-
-const links = [
-  { label: 'Preview', href: '#adaptive-engine' },
-  { label: 'How it works', href: '#how-it-works' },
-  { label: 'Features', href: '#features' },
-];
+import { ArrowRight, Menu, X } from 'lucide-react';
 
 export function LandingNavbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  const navLinks = [
+    { label: 'Architecture', href: '#features' },
+    { label: 'The HADES Method', href: '#how-it-works' },
+    { label: 'Live Graph Demo', href: '#demo' },
+  ];
 
   return (
-    <nav
-      className={`fixed top-0 inset-x-0 z-50 h-16 flex items-center transition-colors duration-300 ${
-        scrolled
-          ? 'glass-panel border-b border-stone-200/70 dark:border-white/[0.08]'
-          : 'border-b border-transparent'
-      }`}
-    >
-      <div className="w-full max-w-[1280px] mx-auto px-5 lg:px-8 flex items-center justify-between">
-        {/* Brand */}
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <span className="w-9 h-9 rounded-lg bg-stone-900 dark:bg-white flex items-center justify-center group-hover:scale-105 transition-transform">
-            <Radar className="w-[18px] h-[18px] text-amber-400 dark:text-amber-500" strokeWidth={2.25} />
-          </span>
-          <span className="flex flex-col leading-none">
-            <span className="font-display text-[15px] font-bold tracking-tight text-stone-900 dark:text-white">HADES</span>
-            <span className="mono-label text-[9px] text-stone-400 dark:text-stone-500 mt-0.5">Mission Control</span>
-          </span>
+    <header className="sticky top-0 z-50 w-full bg-white/95 dark:bg-[#0B0D13]/95 backdrop-blur-md border-b border-slate-200 dark:border-white/10 transition-colors duration-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-15 flex items-center justify-between gap-6">
+        {/* Brand Logo - Sleek & Compact */}
+        <Link to="/" className="shrink-0">
+          <BrandLogo subtitle="MISSION CONTROL" size="sm" />
         </Link>
 
-        {/* Center links */}
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-stone-600 dark:text-stone-400">
-          {links.map((l) => (
-            <a key={l.label} href={l.href} className="hover:text-stone-900 dark:hover:text-white transition">
-              {l.label}
+        {/* Center Navigation Links */}
+        <nav className="hidden md:flex items-center gap-8 lg:gap-10">
+          {navLinks.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-indigo-400 transition-colors"
+            >
+              {link.label}
             </a>
           ))}
-        </div>
+        </nav>
 
-        {/* CTAs */}
-        <div className="flex items-center gap-2">
+        {/* Right CTA Cluster */}
+        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
           <ThemeToggle />
-          <Link to="/sign-in" className="hidden sm:block">
-            <Button variant="ghost" size="sm">Sign in</Button>
+
+          <Link to="/sign-in" className="hidden sm:inline-flex">
+            <Button variant="ghost" size="sm" className="h-8 text-xs font-semibold px-3">
+              Sign In
+            </Button>
           </Link>
-          <Link to="/onboarding" className="hidden sm:block">
-            <Button variant="primary" size="sm" icon={ArrowRight}>Build my path</Button>
+
+          <Link to="/sign-up">
+            <Button
+              variant="primary"
+              size="sm"
+              icon={ArrowRight}
+              className="h-8 text-xs font-bold px-3.5 bg-[#5B50E5] hover:bg-[#4E44D4] text-white shadow-sm"
+            >
+              Build Path
+            </Button>
           </Link>
+
+          {/* Mobile menu trigger */}
           <button
-            onClick={() => setOpen((v) => !v)}
-            className="md:hidden p-2 rounded-lg text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-white/[0.06] transition"
-            aria-label="Menu"
+            onClick={() => setMobileOpen((v) => !v)}
+            className="md:hidden p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition"
+            aria-label="Toggle navigation menu"
           >
-            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile sheet */}
-      {open && (
-        <div className="md:hidden absolute top-16 inset-x-0 glass-panel border-b border-stone-200 dark:border-white/[0.08] p-5 flex flex-col gap-1">
-          {links.map((l) => (
-            <a
-              key={l.label}
-              href={l.href}
-              onClick={() => setOpen(false)}
-              className="py-2.5 px-3 rounded-lg text-sm font-medium text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-white/[0.06] transition"
-            >
-              {l.label}
-            </a>
-          ))}
-          <div className="flex gap-2 mt-2 pt-3 border-t border-stone-200 dark:border-white/[0.08]">
-            <Link to="/sign-in" className="flex-1" onClick={() => setOpen(false)}>
-              <Button variant="secondary" size="sm" className="w-full">Sign in</Button>
+      {/* Mobile Drawer */}
+      {mobileOpen && (
+        <div className="md:hidden border-t border-slate-200 dark:border-white/10 bg-white/98 dark:bg-[#121620]/98 backdrop-blur-lg p-5 space-y-4 shadow-elev">
+          <nav className="flex flex-col space-y-2.5">
+            {navLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className="text-sm font-bold text-slate-800 dark:text-slate-200 py-1 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+              >
+                {link.label}
+              </a>
+            ))}
+          </nav>
+          <div className="pt-3 border-t border-slate-100 dark:border-white/[0.08] flex flex-col gap-2">
+            <Link to="/sign-in" onClick={() => setMobileOpen(false)}>
+              <Button variant="secondary" size="md" className="w-full">
+                Sign In
+              </Button>
             </Link>
-            <Link to="/onboarding" className="flex-1" onClick={() => setOpen(false)}>
-              <Button variant="primary" size="sm" className="w-full">Build my path</Button>
+            <Link to="/sign-up" onClick={() => setMobileOpen(false)}>
+              <Button variant="primary" size="md" icon={ArrowRight} className="w-full bg-[#5B50E5] hover:bg-[#4E44D4] text-white">
+                Build Path
+              </Button>
             </Link>
           </div>
         </div>
       )}
-    </nav>
+    </header>
   );
 }

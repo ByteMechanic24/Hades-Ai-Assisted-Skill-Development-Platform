@@ -1,124 +1,149 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '../components/ui';
+import { Button, BrandLogo } from '../components/ui';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
-import { ArrowRight, Lock, Mail, User, ShieldCheck, Radar, Quote } from 'lucide-react';
-import { useLearner } from '../context/LearnerContext';
-import { IMAGERY } from '../utils/media';
-import { cn } from '../utils/cn';
+import { ArrowRight, Lock, Mail, User, ShieldCheck, AlertCircle, Sparkles } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 /* ---------------------------------------------------------------- Input field */
 function Field({ label, icon: Icon, ...props }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-stone-600 dark:text-stone-400 mb-1.5">{label}</label>
+      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">{label}</label>
       <div className="relative">
-        <Icon className="w-4 h-4 text-stone-400 dark:text-stone-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+        <Icon className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         <input
           {...props}
-          className="w-full bg-stone-50 dark:bg-white/[0.03] border border-stone-200 dark:border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-sm text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 transition"
+          className="w-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition"
         />
       </div>
     </div>
   );
 }
 
-/* --------------------------------------------------------------- Split shell */
-function AuthShell({ image, quote, quoteAuthor, quoteRole, children }) {
+/* ---------------------------------------------------------------- Error banner */
+function ErrorBanner({ message }) {
+  if (!message) return null;
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 text-stone-900 dark:text-stone-100">
-      {/* Imagery panel — real people building software */}
-      <div className="relative hidden lg:block overflow-hidden">
-        <img src={image} alt="A developer at work" className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-stone-950/95 via-stone-950/45 to-stone-950/70" />
-        <div className="absolute inset-0 bg-dots opacity-30" />
+    <div className="flex items-start gap-2.5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs sm:text-sm">
+      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+      <span>{message}</span>
+    </div>
+  );
+}
 
-        <div className="relative h-full flex flex-col justify-between p-10 text-white">
-          <Link to="/" className="inline-flex items-center gap-2.5 w-fit">
-            <span className="w-9 h-9 rounded-lg bg-white flex items-center justify-center">
-              <Radar className="w-[18px] h-[18px] text-amber-500" strokeWidth={2.25} />
-            </span>
-            <span className="flex flex-col leading-none">
-              <span className="font-display text-[15px] font-bold tracking-tight">HADES</span>
-              <span className="mono-label text-[9px] text-white/60 mt-0.5">Mission Control</span>
-            </span>
+/* --------------------------------------------------------------- Split shell: Trust & Security */
+function AuthShell({ children }) {
+  return (
+    <div className="min-h-screen grid lg:grid-cols-2 text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-[#0B0A13] transition-colors duration-200">
+      {/* Left Feature Showcase Panel: Sleek Midnight with Soft Ambient Depth */}
+      <div className="relative hidden lg:flex flex-col justify-between p-12 lg:p-14 bg-[#0A0D14] text-white overflow-hidden border-r border-slate-800/60">
+        {/* Soft, reduced-opacity ambient lighting */}
+        <div className="absolute top-0 right-0 w-[420px] h-[420px] bg-gradient-to-bl from-indigo-500/10 via-violet-500/05 to-transparent blur-3xl pointer-events-none" />
+        <div className="absolute inset-0 bg-grid opacity-10 pointer-events-none" />
+
+        {/* Top Brand with pure white contrast */}
+        <div className="relative z-10">
+          <Link to="/" className="inline-flex items-center w-fit">
+            <BrandLogo subtitle="Adaptive Skill Engine" lightText={true} />
           </Link>
+        </div>
 
-          <div className="max-w-md">
-            <Quote className="w-7 h-7 text-amber-400 mb-4" />
-            <p className="font-display text-xl font-medium leading-snug">{quote}</p>
-            <div className="mt-4 flex items-center gap-3">
-              <div className="h-px w-8 bg-amber-400" />
-              <div>
-                <p className="text-sm font-semibold">{quoteAuthor}</p>
-                <p className="mono-label text-[10px] text-white/60 mt-0.5">{quoteRole}</p>
-              </div>
-            </div>
-          </div>
+        {/* Center Platform Statement in Catchy Outfit Display Typography */}
+        <div className="relative z-10 max-w-lg my-auto py-12">
+          
+
+          <h2 className="font-fraunces text-3xl sm:text-4xl lg:text-[42px] font-bold tracking-tight text-white leading-[1.1]">
+            Stop collecting courses.<br />
+            <span className="bg-gradient-to-r from-[#5B50E5] via-indigo-500 to-violet-600 bg-clip-text text-transparent italic">
+              Start shipping proof.
+            </span>
+          </h2>
+
+          <p className="mt-4 text-sm sm:text-base text-slate-300/90 leading-relaxed font-sans max-w-md">
+            HADES turns your target career role into a live prerequisite graph, connects the exact competencies you need, and adapts dynamically as you complete checkpoints.
+          </p>
+        </div>
+
+        {/* Footer info */}
+        <div className="relative z-10 text-[11px] text-slate-400/70 mono-label">
+          HADES AI · High-Fidelity Competency Engine
         </div>
       </div>
 
-      {/* Form panel */}
-      <div className="relative flex items-center justify-center p-6 sm:p-10">
-        <div className="absolute top-6 right-6">
+      {/* Form Panel */}
+      <div className="relative flex items-center justify-center p-6 sm:p-12">
+        <div className="absolute top-4 right-4 sm:top-5 sm:right-6">
           <ThemeToggle />
         </div>
 
-        {/* Mobile brand */}
-        <Link to="/" className="lg:hidden absolute top-6 left-6 inline-flex items-center gap-2">
-          <span className="w-8 h-8 rounded-lg bg-stone-900 dark:bg-white flex items-center justify-center">
-            <Radar className="w-4 h-4 text-amber-400 dark:text-amber-500" strokeWidth={2.25} />
-          </span>
-          <span className="font-display text-sm font-bold tracking-tight">HADES</span>
+        {/* Mobile Brand */}
+        <Link to="/" className="lg:hidden absolute top-4 left-4 sm:top-5 sm:left-6 inline-flex items-center">
+          <BrandLogo subtitle="Skill Engine" size="sm" />
         </Link>
 
-        <div className="w-full max-w-sm">{children}</div>
+        <div className="w-full max-w-md bg-white dark:bg-[#121620] p-8 sm:p-10 rounded-2xl border border-slate-200 dark:border-white/10 shadow-elev">
+          {children}
+        </div>
       </div>
     </div>
   );
 }
 
-/* ==================================================================== Sign in */
+/* ==================================================================== Sign In */
 export function SignInPage() {
   const navigate = useNavigate();
-  const { profile } = useLearner();
-  const [email, setEmail] = useState('aman@hades.ai');
-  const [password, setPassword] = useState('••••••••••••');
-  const [isLoading, setIsLoading] = useState(false);
+  const { login, authLoading, authError, setAuthError } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleSignIn = (e) => {
+  const handleSignIn = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      navigate('/dashboard');
-    }, 600);
+    try {
+      const user = await login({ email, password });
+      if (user.hasGeneratedRoadmap) {
+        navigate('/dashboard');
+      } else {
+        navigate('/onboarding');
+      }
+    } catch {
+      // error set in context
+    }
+  };
+
+  const handleDemoAccess = async () => {
+    try {
+      const user = await login({ email: 'aman.test@hades.ai', password: 'securepassword123' });
+      if (user.hasGeneratedRoadmap) {
+        navigate('/dashboard');
+      } else {
+        navigate('/onboarding');
+      }
+    } catch {
+      // error set in context
+    }
   };
 
   return (
-    <AuthShell
-      image={IMAGERY.authPrimary}
-      quote="I stopped collecting courses and started shipping projects. HADES showed me exactly what to build next."
-      quoteAuthor="A HADES learner"
-      quoteRole="On the path to AI Systems Engineer"
-    >
-      <div className="mb-8">
-        <span className="mono-label text-amber-600 dark:text-amber-400">Welcome back</span>
-        <h1 className="font-display text-2xl font-bold tracking-tight text-stone-900 dark:text-white mt-2">
-          Resume your mission
+    <AuthShell>
+      <div className="mb-6">
+        <span className="mono-label text-indigo-600 dark:text-indigo-400 font-bold">Welcome Back</span>
+        <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 dark:text-white mt-1">
+          Resume Your Mission
         </h1>
-        <p className="text-sm text-stone-500 dark:text-stone-400 mt-1.5">
-          Pick up exactly where your path left off.
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Pick up exactly where your active roadmap left off.
         </p>
       </div>
 
       <form onSubmit={handleSignIn} className="space-y-4">
+        <ErrorBanner message={authError} />
         <Field
           label="Email address"
           icon={Mail}
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => { setEmail(e.target.value); setAuthError(null); }}
           placeholder="name@domain.com"
           required
         />
@@ -127,72 +152,77 @@ export function SignInPage() {
           icon={Lock}
           type="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => { setPassword(e.target.value); setAuthError(null); }}
           placeholder="••••••••"
           required
         />
-        <Button type="submit" variant="primary" size="lg" className="w-full mt-1" isLoading={isLoading} icon={ArrowRight}>
-          Sign in to workspace
+        <Button type="submit" variant="primary" size="lg" className="w-full mt-2 shadow-glow-indigo" isLoading={authLoading} icon={ArrowRight}>
+          Sign In to Workspace
         </Button>
       </form>
 
-      <div className="mt-6 pt-5 border-t border-stone-200 dark:border-white/[0.08]">
-        <p className="mono-label text-stone-400 dark:text-stone-500 text-center mb-3">Hackathon demo access</p>
+      {/* Demo 1-click Quick Login */}
+      <div className="mt-6 pt-5 border-t border-slate-200 dark:border-white/10">
+        <p className="mono-label text-slate-400 dark:text-slate-500 text-center mb-3 font-medium">Quick Evaluator Access</p>
         <button
-          onClick={handleSignIn}
-          className="w-full py-2.5 px-3 rounded-lg bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-sm font-medium transition flex items-center justify-center gap-2"
+          type="button"
+          onClick={handleDemoAccess}
+          disabled={authLoading}
+          className="w-full py-2.5 px-3 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/15 border border-indigo-500/30 text-indigo-700 dark:text-indigo-300 text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 disabled:opacity-50"
         >
-          <ShieldCheck className="w-4 h-4" />
-          Continue as {profile?.name || 'Aman Kumar'}
+          <ShieldCheck className="w-4 h-4 text-indigo-500" />
+          1-Click Demo Login (Aman Kumar)
         </button>
       </div>
 
-      <p className="text-center mt-6 text-sm text-stone-500 dark:text-stone-400">
-        New here?{' '}
-        <Link to="/sign-up" className="text-amber-600 dark:text-amber-400 font-medium hover:underline">
-          Create an account
+      <p className="text-center mt-6 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+        New learner?{' '}
+        <Link to="/sign-up" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
+          Create an Account
         </Link>
       </p>
     </AuthShell>
   );
 }
 
-/* ==================================================================== Sign up */
+/* ==================================================================== Sign Up */
 export function SignUpPage() {
   const navigate = useNavigate();
+  const { register, authLoading, authError, setAuthError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
-    navigate('/onboarding');
+    try {
+      await register({ name, email, password });
+      navigate('/onboarding');
+    } catch {
+      // error set in context
+    }
   };
 
   return (
-    <AuthShell
-      image={IMAGERY.authSecondary}
-      quote="Your goal becomes a project. The project reveals the skills. The gaps become your path."
-      quoteAuthor="The HADES method"
-      quoteRole="Goal → Project → Skills → Mastery"
-    >
-      <div className="mb-8">
-        <span className="mono-label text-amber-600 dark:text-amber-400">Get started</span>
-        <h1 className="font-display text-2xl font-bold tracking-tight text-stone-900 dark:text-white mt-2">
-          Build your path
+    <AuthShell>
+      <div className="mb-6">
+        <span className="mono-label text-indigo-600 dark:text-indigo-400 font-bold">Get Started</span>
+        <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 dark:text-white mt-1">
+          Build Your Adaptive Path
         </h1>
-        <p className="text-sm text-stone-500 dark:text-stone-400 mt-1.5">
-          Tell us the role you&apos;re chasing — we&apos;ll chart the route.
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Tell us the role you&apos;re chasing — we&apos;ll synthesize the route.
         </p>
       </div>
 
       <form onSubmit={handleSignUp} className="space-y-4">
+        <ErrorBanner message={authError} />
         <Field
           label="Full name"
           icon={User}
           type="text"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => { setName(e.target.value); setAuthError(null); }}
           placeholder="Aman Kumar"
           required
         />
@@ -201,7 +231,7 @@ export function SignUpPage() {
           icon={Mail}
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => { setEmail(e.target.value); setAuthError(null); }}
           placeholder="aman@example.com"
           required
         />
@@ -210,19 +240,19 @@ export function SignUpPage() {
           icon={Lock}
           type="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => { setPassword(e.target.value); setAuthError(null); }}
           placeholder="••••••••"
           required
         />
-        <Button type="submit" variant="primary" size="lg" className="w-full mt-1" icon={ArrowRight}>
-          Start onboarding
+        <Button type="submit" variant="primary" size="lg" className="w-full mt-2 shadow-glow-indigo" isLoading={authLoading} icon={ArrowRight}>
+          Start Guided Onboarding
         </Button>
       </form>
 
-      <p className="text-center mt-6 text-sm text-stone-500 dark:text-stone-400">
+      <p className="text-center mt-6 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
         Already have an account?{' '}
-        <Link to="/sign-in" className="text-amber-600 dark:text-amber-400 font-medium hover:underline">
-          Sign in
+        <Link to="/sign-in" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
+          Sign In
         </Link>
       </p>
     </AuthShell>

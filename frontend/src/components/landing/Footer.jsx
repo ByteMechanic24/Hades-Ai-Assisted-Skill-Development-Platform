@@ -1,58 +1,49 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Radar, ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
+import { BrandLogo } from '../ui/BrandLogo';
 
 export function Footer() {
   const nav = [
-    { label: 'Get started', to: '/onboarding' },
-    { label: 'Live workspace', to: '/dashboard' },
-    { label: 'Sign in', to: '/sign-in' },
+    { label: 'Get Started', to: '/onboarding' },
+    { label: 'Live Workspace', to: '/dashboard' },
+    { label: 'Sign In', to: '/sign-in' },
   ];
 
   return (
-    <footer className="border-t border-stone-200 dark:border-white/[0.08] bg-white dark:bg-[#08080a] py-14 px-5 lg:px-8">
+    <footer className="border-t border-slate-200 dark:border-white/[0.08] bg-transparent dark:bg-transparent py-14 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
       <div className="max-w-6xl mx-auto">
         {/* CTA band */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-12 border-b border-stone-200 dark:border-white/[0.08]">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-12 border-b border-slate-200 dark:border-white/[0.08]">
           <div className="max-w-lg">
-            <h3 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-stone-900 dark:text-white leading-tight">
-              Your goal is already a project.
+            <h3 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
+              Your career goal is already a project.
               <br />
-              Let&apos;s find the path.
+              Let&apos;s chart the exact path.
             </h3>
           </div>
           <Link
             to="/onboarding"
-            className="inline-flex items-center gap-2 self-start md:self-auto px-5 py-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 text-sm font-semibold transition-colors"
+            className="inline-flex items-center gap-2 self-start md:self-auto px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors shadow-sm"
           >
-            Build my path
+            Build My Path
             <ArrowUpRight className="w-4 h-4" />
           </Link>
         </div>
 
         {/* Meta row */}
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-stone-500 dark:text-stone-400">
-          <div className="flex items-center gap-2.5">
-            <span className="w-8 h-8 rounded-lg bg-stone-900 dark:bg-white flex items-center justify-center">
-              <Radar className="w-4 h-4 text-amber-400 dark:text-amber-500" strokeWidth={2.25} />
-            </span>
-            <div className="leading-tight">
-              <span className="font-display font-bold text-stone-900 dark:text-white text-sm tracking-tight">HADES</span>
-              <span className="block mono-label text-[9px] text-stone-400 dark:text-stone-500 mt-0.5">
-                HCLTech Hackathon 2026
-              </span>
-            </div>
-          </div>
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-slate-500 dark:text-slate-400">
+          <BrandLogo subtitle="AI-Powered Learning Platform" size="sm" />
 
-          <div className="flex items-center gap-6 font-medium">
+          <div className="flex items-center gap-6 font-semibold">
             {nav.map((n) => (
-              <Link key={n.label} to={n.to} className="hover:text-stone-900 dark:hover:text-white transition">
+              <Link key={n.label} to={n.to} className="hover:text-slate-900 dark:hover:text-white transition">
                 {n.label}
               </Link>
             ))}
           </div>
 
-          <p className="mono-label text-[10px] text-stone-400 dark:text-stone-500 text-center sm:text-right">
+          <p className="mono-label text-[10px] text-slate-400 dark:text-slate-500 text-center sm:text-right font-medium">
             React · Tailwind · Scala Pekko · Agno AI
           </p>
         </div>
