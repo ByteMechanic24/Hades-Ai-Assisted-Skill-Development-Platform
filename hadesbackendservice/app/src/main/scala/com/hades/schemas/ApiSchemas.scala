@@ -86,6 +86,61 @@ case class DashboardResponse(
   nextRecommendedAction: String
 )
 
+case class SkillCompetencyResponse(
+  id: String,
+  name: String,
+  category: String,
+  mastery: Int,
+  target: Int,
+  confidence: String,
+  trend: String
+)
+
+case class MilestoneBadgeResponse(
+  id: String,
+  title: String,
+  phase: String,
+  status: String,
+  completionDate: String,
+  progress: Int,
+  skillsEarned: Seq[String]
+)
+
+case class ProgressStatsResponse(
+  currentStreak: Int,
+  longestStreak: Int,
+  weeklyHoursLogged: Double,
+  weeklyHoursTarget: Double,
+  overallProgressPercent: Double
+)
+
+case class ResourceDetailResponse(
+  id: String,
+  title: String,
+  provider: String,
+  `type`: String,
+  format: String,
+  duration: String,
+  difficulty: String,
+  rating: Double,
+  reviewsCount: Int,
+  matchScore: Int,
+  whyRecommended: String,
+  skillsCovered: Seq[String],
+  progress: Int,
+  isSaved: Boolean,
+  thumbnail: String,
+  url: String
+)
+
+case class ProgressEventDetailResponse(
+  id: String,
+  eventType: String,
+  entityId: String,
+  payload: String,
+  createdAt: String
+)
+
 object ApiJsonProtocol extends DefaultJsonProtocol {
   import LearningPathJsonProtocol._
 
@@ -101,4 +156,10 @@ object ApiJsonProtocol extends DefaultJsonProtocol {
   implicit val assistantChatRequestFormat: RootJsonFormat[AssistantChatRequest] = jsonFormat1(AssistantChatRequest)
   implicit val assistantChatResponseFormat: RootJsonFormat[AssistantChatResponse] = jsonFormat1(AssistantChatResponse)
   implicit val dashboardResponseFormat: RootJsonFormat[DashboardResponse] = jsonFormat7(DashboardResponse)
+
+  implicit val skillCompetencyResponseFormat: RootJsonFormat[SkillCompetencyResponse] = jsonFormat7(SkillCompetencyResponse)
+  implicit val milestoneBadgeResponseFormat: RootJsonFormat[MilestoneBadgeResponse] = jsonFormat7(MilestoneBadgeResponse)
+  implicit val progressStatsResponseFormat: RootJsonFormat[ProgressStatsResponse] = jsonFormat5(ProgressStatsResponse)
+  implicit val resourceDetailResponseFormat: RootJsonFormat[ResourceDetailResponse] = jsonFormat16(ResourceDetailResponse)
+  implicit val progressEventDetailResponseFormat: RootJsonFormat[ProgressEventDetailResponse] = jsonFormat5(ProgressEventDetailResponse)
 }

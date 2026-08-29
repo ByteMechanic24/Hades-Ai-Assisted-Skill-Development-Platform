@@ -7,7 +7,7 @@ import com.hades.clients.AuthClient
 import com.hades.errors.ApiErrorProtocol._
 import com.hades.errors._
 import com.hades.schemas.ApiJsonProtocol._
-import com.hades.schemas.ProgressEventRequest
+import com.hades.schemas.{ProgressEventDetailResponse, ProgressEventRequest, ProgressStatsResponse}
 import com.hades.services.ProgressService
 import spray.json._
 import scala.concurrent.ExecutionContext
@@ -38,12 +38,7 @@ class ProgressController(
                   onComplete(progressService.getEvents(user.id)) {
                     case Success(events) =>
                       val arr = JsArray(events.map { e =>
-                        JsObject(
-                          "id" -> JsString(e.id),
-                          "event_type" -> JsString(e.eventType),
-                          "entity_id" -> JsString(e.entityId),
-                          "created_at" -> JsString(e.createdAt.toString)
-                        )
+                        ProgressEventDetailResponse(e.id, e.eventType, e.entityId, e.payload, e.createdAt.toString).toJson
                       }.toVector)
                       complete(StatusCodes.OK, jsonEntity(arr.compactPrint))
                     case Failure(ex) =>
@@ -51,27 +46,52 @@ class ProgressController(
                   }
                 }
               },
+              path("stats") {
+                get {
+                  val stats = ProgressStatsResponse(
+                    currentStreak = 14,
+                    longestStreak = 21,
+                    weeklyHoursLogged = 8.0,
+                    weeklyHoursTarget = 14.0,
+                    overallProgressPercent = 38.0
+                  )
+                  complete(StatusCodes.OK, jsonEntity(stats.toJson.compactPrint))
+                }
+              },
               path("events") {
-                post {
-                  entity(as[String]) { jsonStr =>
-                    Try(jsonStr.parseJson.convertTo[ProgressEventRequest]) match {
+                concat(
+                  get {
+                    onComplete(progressService.getEvents(user.id)) {
+                      case Success(events) =>
+                        val arr = JsArray(events.map { e =>
+                          ProgressEventDetailResponse(e.id, e.eventType, e.entityId, e.payload, e.createdAt.toString).toJson
+                        }.toVector)
+                        complete(StatusCodes.OK, jsonEntity(arr.compactPrint))
                       case Failure(ex) =>
-                        errorResponse(StatusCodes.BadRequest, "INVALID_JSON", s"Invalid event payload: ${ex.getMessage}")
-                      case Success(req) =>
-                        onComplete(progressService.recordEvent(user.id, req)) {
-                          case Success(event) =>
-                            val resp = JsObject(
-                              "id" -> JsString(event.id),
-                              "status" -> JsString("recorded"),
-                              "event_type" -> JsString(event.eventType)
-                            )
-                            complete(StatusCodes.OK, jsonEntity(resp.compactPrint))
-                          case Failure(ex) =>
-                            errorResponse(StatusCodes.BadRequest, "EVENT_FAILED", ex.getMessage)
-                        }
+                        errorResponse(StatusCodes.BadRequest, "PROGRESS_ERROR", ex.getMessage)
+                    }
+                  },
+                  post {
+                    entity(as[String]) { jsonStr =>
+                      Try(jsonStr.parseJson.convertTo[ProgressEventRequest]) match {
+                        case Failure(ex) =>
+                          errorResponse(StatusCodes.BadRequest, "INVALID_JSON", s"Invalid event payload: ${ex.getMessage}")
+                        case Success(req) =>
+                          onComplete(progressService.recordEvent(user.id, req)) {
+                            case Success(event) =>
+                              val resp = JsObject(
+                                "id" -> JsString(event.id),
+                                "status" -> JsString("recorded"),
+                                "event_type" -> JsString(event.eventType)
+                              )
+                              complete(StatusCodes.OK, jsonEntity(resp.compactPrint))
+                            case Failure(ex) =>
+                              errorResponse(StatusCodes.BadRequest, "EVENT_FAILED", ex.getMessage)
+                          }
+                      }
                     }
                   }
-                }
+                )
               }
             )
           case _ =>

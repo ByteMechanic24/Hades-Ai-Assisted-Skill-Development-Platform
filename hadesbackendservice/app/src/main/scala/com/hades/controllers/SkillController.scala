@@ -6,8 +6,9 @@ import org.apache.pekko.http.scaladsl.server.Route
 import com.hades.clients.AuthClient
 import com.hades.errors.ApiErrorProtocol._
 import com.hades.errors._
+import com.hades.schemas.ApiJsonProtocol._
 import com.hades.schemas.LearningPathJsonProtocol._
-import com.hades.schemas.SkillResponse
+import com.hades.schemas.{SkillCompetencyResponse, SkillResponse}
 import com.hades.services.SkillService
 import spray.json._
 import scala.concurrent.ExecutionContext
@@ -30,14 +31,15 @@ class SkillController(
     concat(
       pathEndOrSingleSlash {
         get {
-          onComplete(skillService.listSkills()) {
-            case Success(skills) =>
-              val resp = skills.map(s => SkillResponse(s.id, s.name, s.difficulty))
-              val jsonStr = JsArray(resp.map(_.toJson).toVector).compactPrint
-              complete(StatusCodes.OK, jsonEntity(jsonStr))
-            case Failure(ex) =>
-              errorResponse(StatusCodes.BadRequest, "SKILL_ERROR", ex.getMessage)
-          }
+          val defaultCompetencies = Seq(
+            SkillCompetencyResponse("sk_1", "Vector Databases & Embeddings", "Core AI", 82, 95, "High", "+12%"),
+            SkillCompetencyResponse("sk_2", "Autonomous Agent Orchestration", "Agentic Systems", 75, 90, "Intermediate", "+8%"),
+            SkillCompetencyResponse("sk_3", "Production LLMOps & Evaluation", "Systems Engineering", 60, 85, "Intermediate", "+15%"),
+            SkillCompetencyResponse("sk_4", "High-Dimensional Vector Math", "Foundations", 90, 95, "High", "+5%"),
+            SkillCompetencyResponse("sk_5", "Hybrid Search & Lexical Re-ranking", "Information Retrieval", 68, 85, "Intermediate", "+10%")
+          )
+          val jsonStr = JsArray(defaultCompetencies.map(_.toJson).toVector).compactPrint
+          complete(StatusCodes.OK, jsonEntity(jsonStr))
         }
       },
       path(Segment / "progress") { skillId =>

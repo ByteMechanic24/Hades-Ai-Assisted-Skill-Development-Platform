@@ -36,8 +36,24 @@ class LearnerProfileController(
               get {
                 onComplete(profileService.getProfile(user.id)) {
                   case Success(p) =>
-                    val resp = ProfileResponse(user.id, p.experienceLevel, p.minutesPerDay, p.daysPerWeek, p.targetRole, p.learningPreferences)
-                    complete(StatusCodes.OK, jsonEntity(resp.toJson.compactPrint))
+                    val weeklyHours = (p.minutesPerDay * p.daysPerWeek) / 60
+                    val enrichedObj = JsObject(
+                      "id" -> JsString(user.id),
+                      "userId" -> JsString(user.id),
+                      "name" -> JsString(user.name),
+                      "email" -> JsString(user.email),
+                      "avatar" -> JsString("https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"),
+                      "currentRole" -> JsString("Computer Science Learner"),
+                      "targetRole" -> JsString(p.targetRole),
+                      "educationLevel" -> JsString("Undergraduate / Tech Enthusiast"),
+                      "experienceLevel" -> JsString(p.experienceLevel),
+                      "minutesPerDay" -> JsNumber(p.minutesPerDay),
+                      "daysPerWeek" -> JsNumber(p.daysPerWeek),
+                      "interests" -> JsArray(Vector(JsString("Generative AI"), JsString("Vector Search"), JsString("Agentic Systems"))),
+                      "learningPreferences" -> JsArray(p.learningPreferences.map(JsString(_)).toVector),
+                      "weeklyHours" -> JsNumber(weeklyHours)
+                    )
+                    complete(StatusCodes.OK, jsonEntity(enrichedObj.compactPrint))
                   case Failure(ex) =>
                     errorResponse(StatusCodes.BadRequest, "PROFILE_ERROR", ex.getMessage)
                 }
