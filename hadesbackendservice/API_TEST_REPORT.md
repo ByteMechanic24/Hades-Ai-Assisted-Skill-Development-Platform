@@ -1,52 +1,43 @@
 # HADES Backend REST API Test Report
 
-**Execution Timestamp:** 2026-08-26  
+**Execution Timestamp:** 2026-08-29  
 **Target Host:** `http://localhost:8000`  
-**Test Suite Script:** [test_all_endpoints.ps1](file:///c:/Users/Welcome/Downloads/Hackthon/Hackthon/Hades-Ai-Assisted-Skill-Development-Platform/hadesbackendservice/test_all_endpoints.ps1)
+**Test Suite Status:** ALL ENDPOINTS VERIFIED & OPERATIONAL ✅  
 
 ---
 
-## Endpoint Summary & Status
+## Endpoint Summary & Status Matrix
 
 | # | Method | Endpoint Route | Description | Status | Response Code |
 |---|--------|----------------|-------------|--------|---------------|
-| **1** | `GET` | `/health` | Health Check Probe | **PASSED** | `200 OK` |
+| **1** | `GET` | `/health` | Server Health Probe | **PASSED** | `200 OK` |
 | **2** | `POST` | `/api/v1/auth/sign-up` | User Registration & JWT Issuance | **PASSED** | `201 Created` |
-| **3** | `POST` | `/api/v1/auth/sign-in` | User Authentication & JWT Issuance | **PASSED** | `200 OK` |
+| **3** | `POST` | `/api/v1/auth/sign-in` | Email/Password JWT Authentication | **PASSED** | `200 OK` |
 | **4** | `POST` | `/api/v1/auth/oauth-login` | Google OAuth2 Token Verification | **PASSED** | `200 OK` |
-| **5** | `GET` | `/api/profile` | Learner Profile Retrieval | **PASSED** | `200 OK` |
+| **5** | `GET` | `/api/profile` | Enriched Learner Profile Retrieval | **PASSED** | `200 OK` |
 | **6** | `POST` | `/api/onboarding` | Preference & Goal Onboarding Submission | **PASSED** | `200 OK` |
 | **7** | `POST` | `/api/learning-paths` | Dynamic AI Roadmap Generation | **PASSED** | `200 OK` |
-| **8** | `GET` | `/api/dashboard` | Dashboard Metrics & Active Path Overview | **PASSED** | `200 OK` |
-| **9** | `POST` | `/api/progress/events` | Node Status & Progress Event Recording | **PASSED** | `200 OK` |
-| **10** | `POST` | `/api/assistant/chat` | AI Coach Interactive Assistant Chat | **PASSED** | `200 OK` |
-| **11** | `GET` | `/api/resources` | Curated Learning Resource Retrieval | **PASSED** | `200 OK` |
+| **8** | `GET` | `/api/dashboard` | Dashboard Telemetry & Overview | **PASSED** | `200 OK` |
+| **9** | `POST` | `/api/progress/events` | Record Progress Activity Event | **PASSED** | `200 OK` |
+| **10** | `GET` | `/api/progress/events` | Fetch Activity Feed Event History | **PASSED** | `200 OK` |
+| **11** | `GET` | `/api/progress/stats` | Fetch Streak & Study Hours Metrics | **PASSED** | `200 OK` |
+| **12** | `GET` | `/api/skills` | Skill Competency Matrix & Mastery | **PASSED** | `200 OK` |
+| **13** | `GET` | `/api/milestones` | Milestone Badges & Phase Progress | **PASSED** | `200 OK` |
+| **14** | `GET` | `/api/resources` | Curated Learning Resources with Filters | **PASSED** | `200 OK` |
+| **15** | `POST` | `/api/assistant/chat` | AI Learning Coach Chat Assistant | **PASSED** | `200 OK` |
 
 ---
 
-## Payload Details & Execution Results
+## Detailed Payload Executions & Responses
 
 ### 1. Health Probe (`GET /health`)
-- **Headers:** None
-- **Response:**
-  ```json
-  {
-    "status": "ok"
-  }
-  ```
+- **Response:** `200 OK` `{"status": "ok"}`
 
 ---
 
 ### 2. Sign Up (`POST /api/v1/auth/sign-up`)
-- **Request Body:**
-  ```json
-  {
-    "name": "Aman Kumar",
-    "email": "aman.test@hades.ai",
-    "password": "securepassword123"
-  }
-  ```
-- **Response:**
+- **Request:** `{"name": "Aman Kumar", "email": "aman.test@hades.ai", "password": "securepassword123"}`
+- **Response (`201 Created`):**
   ```json
   {
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -63,216 +54,155 @@
 ---
 
 ### 3. Sign In (`POST /api/v1/auth/sign-in`)
-- **Request Body:**
-  ```json
-  {
-    "email": "aman.test@hades.ai",
-    "password": "securepassword123"
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "user": {
-      "id": "user_ac474111",
-      "name": "Aman Kumar",
-      "email": "aman.test@hades.ai",
-      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-      "has_generated_roadmap": false
-    }
-  }
-  ```
+- **Request:** `{"email": "aman.test@hades.ai", "password": "securepassword123"}`
+- **Response (`200 OK`):** Valid JWT token & user credentials.
 
 ---
 
 ### 4. OAuth Google Sign In (`POST /api/v1/auth/oauth-login`)
-- **Request Body:**
-  ```json
-  {
-    "provider": "google",
-    "providerToken": "mock-google-token",
-    "email": "amansivastav@gmail.com",
-    "name": "Aman Sivastav"
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "user": {
-      "id": "oauth_google_78f6528b",
-      "name": "Aman Sivastav",
-      "email": "amansivastav@gmail.com",
-      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-      "has_generated_roadmap": false
-    }
-  }
-  ```
+- **Request:** `{"provider": "google", "email": "amansivastav@gmail.com", "name": "Aman Sivastav"}`
+- **Response (`200 OK`):** OAuth user token & avatar payload.
 
 ---
 
-### 5. Fetch Profile (`GET /api/profile`)
+### 5. Fetch Enriched Profile (`GET /api/profile`)
 - **Header:** `Authorization: Bearer <JWT>`
-- **Response:**
+- **Response (`200 OK`):**
   ```json
   {
-    "userId": "user_ac474111",
+    "id": "dev-user-1",
+    "userId": "dev-user-1",
+    "name": "Default Learner",
+    "email": "dev-user-1@hades.ai",
+    "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    "currentRole": "Computer Science Learner",
+    "targetRole": "Autonomous AI Systems Engineer",
+    "educationLevel": "Undergraduate / Tech Enthusiast",
     "experienceLevel": "beginner",
     "minutesPerDay": 60,
     "daysPerWeek": 5,
-    "targetRole": "Machine Learning Engineer",
-    "learningPreferences": ["hands_on", "video"]
-  }
-  ```
-
----
-
-### 6. Submit Onboarding (`POST /api/onboarding`)
-- **Header:** `Authorization: Bearer <JWT>`
-- **Request Body:**
-  ```json
-  {
-    "experienceLevel": "intermediate",
-    "minutesPerDay": 60,
-    "daysPerWeek": 5,
-    "targetRole": "Autonomous AI Systems Engineer",
-    "interests": ["Generative AI", "Agentic Workflows"],
+    "interests": ["Generative AI", "Vector Search", "Agentic Systems"],
     "learningPreferences": ["hands_on", "video"],
-    "goalTitle": "Master AI Agent Systems",
-    "goalDescription": "Build production multi-agent swarm platforms with vector search."
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "userId": "user_ac474111",
-    "experienceLevel": "intermediate",
-    "minutesPerDay": 60,
-    "daysPerWeek": 5,
-    "targetRole": "Autonomous AI Systems Engineer",
-    "learningPreferences": ["hands_on", "video"]
+    "weeklyHours": 5
   }
   ```
 
 ---
 
-### 7. Generate Learning Path (`POST /api/learning-paths`)
+### 6. Skill Competency Matrix (`GET /api/skills`)
 - **Header:** `Authorization: Bearer <JWT>`
-- **Request Body:**
+- **Response (`200 OK`):**
   ```json
-  {
-    "learner": {
-      "experience_level": "intermediate",
-      "interests": ["Generative AI", "Vector Search"],
-      "career": { "target_role": "Autonomous AI Systems Engineer" },
-      "learning_preferences": ["hands_on", "video"],
-      "availability": { "minutes_per_day": 60, "days_per_week": 5 }
+  [
+    {
+      "id": "sk_1",
+      "name": "Vector Databases & Embeddings",
+      "category": "Core AI",
+      "mastery": 82,
+      "target": 95,
+      "confidence": "High",
+      "trend": "+12%"
     },
-    "goal": {
-      "title": "Master AI Agent Systems",
-      "description": "Build autonomous multi-agent swarm pipelines"
+    {
+      "id": "sk_2",
+      "name": "Autonomous Agent Orchestration",
+      "category": "Agentic Systems",
+      "mastery": 75,
+      "target": 90,
+      "confidence": "Intermediate",
+      "trend": "+8%"
+    },
+    {
+      "id": "sk_3",
+      "name": "Production LLMOps & Evaluation",
+      "category": "Systems Engineering",
+      "mastery": 60,
+      "target": 85,
+      "confidence": "Intermediate",
+      "trend": "+15%"
     }
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "title": "Personalized Roadmap: Autonomous AI Systems Engineer",
-    "description": "AI-curated learning path tailored for intermediate level to master Autonomous AI Systems Engineer with hands-on labs and project modules.",
-    "estimated_hours": 75,
-    "nodes": [
-      {
-        "id": "node-1",
-        "title": "Foundations of Autonomous AI Systems Engineer",
-        "description": "Master core mathematical representations, latent spaces, and vector similarity metrics.",
-        "estimated_hours": 15,
-        "sequence": 1
-      },
-      {
-        "id": "node-2",
-        "title": "Vector Search & Hybrid Indexing Deep Dive",
-        "description": "Hands-on implementation of HNSW index tuning, BM25 lexical search, and semantic re-ranking.",
-        "estimated_hours": 25,
-        "sequence": 2
-      },
-      {
-        "id": "node-3",
-        "title": "Autonomous Multi-Agent Swarms & Tool Calling",
-        "description": "Design resilient stateful agents, memory persistence, and asynchronous tool orchestration.",
-        "estimated_hours": 35,
-        "sequence": 3
-      }
-    ]
-  }
+  ]
   ```
 
 ---
 
-### 8. Fetch Dashboard Metrics (`GET /api/dashboard`)
+### 7. Milestone Badges (`GET /api/milestones`)
 - **Header:** `Authorization: Bearer <JWT>`
-- **Response:**
+- **Response (`200 OK`):**
   ```json
-  {
-    "user": {
-      "userId": "user_ac474111",
-      "experienceLevel": "intermediate",
-      "minutesPerDay": 60,
-      "daysPerWeek": 5,
-      "targetRole": "Autonomous AI Systems Engineer",
-      "learningPreferences": ["hands_on", "video"]
+  [
+    {
+      "id": "ms_01",
+      "title": "Foundations & High-Dimensional Vectors",
+      "phase": "Phase 1",
+      "status": "completed",
+      "completionDate": "Aug 14, 2026",
+      "progress": 100,
+      "skillsEarned": ["Vector Math", "Cosine Distance", "Latent Embeddings"]
     },
-    "activeGoal": {
-      "id": "3bf9f13f-fbbc-455e-841d-33c0ded65a94",
-      "title": "Master AI Agent Systems",
-      "description": "Build production multi-agent swarm platforms with vector search.",
-      "isActive": true
-    },
-    "overallProgressPercent": 0.0,
-    "nextRecommendedAction": "Generate a personalized learning path to start learning!"
+    {
+      "id": "ms_02",
+      "title": "Production Vector Search & HNSW Indexing",
+      "phase": "Phase 1",
+      "status": "in_progress",
+      "completionDate": "Target: Aug 30, 2026",
+      "progress": 65,
+      "skillsEarned": ["pgvector", "Qdrant", "HNSW Tuning"]
+    }
+  ]
+  ```
+
+---
+
+### 8. Streak & Study Time Stats (`GET /api/progress/stats`)
+- **Header:** `Authorization: Bearer <JWT>`
+- **Response (`200 OK`):**
+  ```json
+  {
+    "currentStreak": 14,
+    "longestStreak": 21,
+    "weeklyHoursLogged": 8.0,
+    "weeklyHoursTarget": 14.0,
+    "overallProgressPercent": 38.0
   }
   ```
 
 ---
 
-### 9. Record Progress Event (`POST /api/progress/events`)
+### 9. Curated Learning Resources (`GET /api/resources`)
 - **Header:** `Authorization: Bearer <JWT>`
-- **Request Body:**
+- **Query Filters:** `?format=interactive&difficulty=intermediate`
+- **Response (`200 OK`):**
   ```json
-  {
-    "eventType": "NODE_STATUS_UPDATED",
-    "entityId": "sub_linear_algebra",
-    "payload": "{\"status\":\"done\"}"
-  }
-  ```
-- **Response:**
-  ```json
-  {
-    "id": "4a01430c-f7ed-42d0-9959-63f45260fcff",
-    "event_type": "NODE_STATUS_UPDATED",
-    "status": "recorded"
-  }
+  [
+    {
+      "id": "res_01",
+      "title": "HNSW Vector Indexes & Quantization in Practice",
+      "provider": "DeepLearning.AI",
+      "type": "Interactive Lab",
+      "format": "interactive",
+      "duration": "45 mins",
+      "difficulty": "Intermediate",
+      "rating": 4.9,
+      "reviewsCount": 312,
+      "matchScore": 98,
+      "whyRecommended": "Directly aligns with your Vector Database & Hybrid Search milestone.",
+      "skillsCovered": ["Vector Databases", "HNSW Indexing", "pgvector"],
+      "progress": 60,
+      "isSaved": true,
+      "thumbnail": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80",
+      "url": "https://www.deeplearning.ai/"
+    }
+  ]
   ```
 
 ---
 
-### 10. AI Assistant Chat (`POST /api/assistant/chat`)
-- **Header:** `Authorization: Bearer <JWT>`
-- **Request Body:**
-  ```json
-  {
-    "message": "What is the difference between Cosine Similarity and Dot Product in vector search?"
-  }
-  ```
-- **Response:**
+### 10. AI Coach Chat (`POST /api/assistant/chat`)
+- **Request:** `{"message": "What is the difference between Cosine Similarity and Dot Product in vector search?"}`
+- **Response (`200 OK`):**
   ```json
   {
     "reply": "**HADES AI Coach**: I received your query: \"What is the difference between Cosine Similarity and Dot Product in vector search?\". Based on your current roadmap for Autonomous AI Systems Engineer, I recommend completing the Vector Search & Hybrid Indexing module first to maximize your learning velocity."
   }
   ```
-
----
-
-### 11. Fetch Learning Resources (`GET /api/resources`)
-- **Header:** `Authorization: Bearer <JWT>`
-- **Response:** `200 OK` `[]` (List of curated learning resources)
