@@ -1,0 +1,19 @@
+# Core Web & API Framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.8.0
+pydantic-settings>=2.4.0
+
+# AI & Agent Framework
+agno>=1.0.0
+mistralai>=1.0.0
+
+# Environment & Utilities
+python-dotenv>=1.0.1
+
+# Database Driver
+psycopg[binary,pool]>=3.2.0
+
+# Testing & Client
+pytest>=8.3.0
+httpx>=0.27.0

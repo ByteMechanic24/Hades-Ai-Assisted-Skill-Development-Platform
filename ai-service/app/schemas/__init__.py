@@ -1,0 +1,38 @@
+from app.schemas.models import (
+    SkillItem,
+    LearnerProfile,
+    GoalRequirements,
+    SkillPrerequisites,
+    SkillGapResult,
+    SkillAnalysis,
+    RoadmapNode,
+    Roadmap,
+    RoadmapSearchResult,
+    LearningPathModule,
+    LearningPathMilestone,
+    LearningPathResponse,
+    SearchQueryPlan,
+    LearningResource,
+    TopicResourceDiscoveryRequest,
+    TopicResourceDiscoveryResponse,
+)
+
+__all__ = [
+    "SkillItem",
+    "LearnerProfile",
+    "GoalRequirements",
+    "SkillPrerequisites",
+    "SkillGapResult",
+    "SkillAnalysis",
+    "RoadmapNode",
+    "Roadmap",
+    "RoadmapSearchResult",
+    "LearningPathModule",
+    "LearningPathMilestone",
+    "LearningPathResponse",
+    "SearchQueryPlan",
+    "LearningResource",
+    "TopicResourceDiscoveryRequest",
+    "TopicResourceDiscoveryResponse",
+]
+
