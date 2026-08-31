@@ -1,0 +1,246 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  HADES — Multi-Color Brand Visual Identity System
+  Core Brand: Deep Navy / Slate neutral foundation + Electric Indigo & Electric Violet
+  Page Worlds:
+    - Landing: Innovation (Indigo + Violet + Cyan)
+    - Auth: Trust & Security (Deep Navy + Indigo)
+    - Onboarding: Progressive Identity (Indigo -> Violet -> Cyan -> Teal)
+    - Dashboard: Command Center (Deep Navy / Indigo / Cyan / Emerald)
+    - Learning Path: Journey (Violet + Indigo + Cyan + Emerald)
+    - Resources: Exploration (Cyan + Teal + Violet)
+    - Assessments: Challenge (Coral + Rose + Indigo)
+    - Progress & Milestones: Growth & Achievement (Emerald + Teal + Blue)
+    - AI Assistant: Intelligence (Electric Violet + Indigo + Cyan)
+*/
+
+@layer base {
+  :root {
+    --bg-canvas: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-surface-elevated: #f1f5f9;
+    --bg-surface-subtle: #e2e8f0;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --text-subtle: #94a3b8;
+    --line: rgba(15, 23, 42, 0.08);
+    --line-strong: rgba(15, 23, 42, 0.16);
+
+    /* Core Semantic Brand Tokens */
+    --brand-indigo: #4f46e5;
+    --brand-violet: #7c3aed;
+    --brand-cyan: #0891b2;
+    --brand-teal: #0d9488;
+    --brand-emerald: #059669;
+    --brand-coral: #e11d48;
+    --brand-amber: #4f46e5;
+
+    --brand-indigo-soft: rgba(79, 70, 229, 0.08);
+    --brand-violet-soft: rgba(124, 58, 237, 0.08);
+    --brand-cyan-soft: rgba(8, 145, 178, 0.08);
+    --brand-teal-soft: rgba(13, 148, 136, 0.08);
+    --brand-emerald-soft: rgba(5, 150, 105, 0.08);
+    --brand-coral-soft: rgba(225, 29, 72, 0.08);
+  }
+
+  .dark {
+    --bg-canvas: #0b0d13;
+    --bg-surface: #121620;
+    --bg-surface-elevated: #181e2c;
+    --bg-surface-subtle: #222a3d;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-subtle: #64748b;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.14);
+
+    /* Core Semantic Brand Tokens */
+    --brand-indigo: #818cf8;
+    --brand-violet: #a78bfa;
+    --brand-cyan: #22d3ee;
+    --brand-teal: #2dd4bf;
+    --brand-emerald: #34d399;
+    --brand-coral: #fb7185;
+    --brand-amber: #818cf8;
+
+    --brand-indigo-soft: rgba(99, 102, 241, 0.12);
+    --brand-violet-soft: rgba(139, 92, 246, 0.12);
+    --brand-cyan-soft: rgba(6, 182, 212, 0.12);
+    --brand-teal-soft: rgba(20, 184, 166, 0.12);
+    --brand-emerald-soft: rgba(16, 185, 129, 0.12);
+    --brand-coral-soft: rgba(244, 63, 94, 0.12);
+  }
+
+  * {
+    border-color: var(--line);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-canvas);
+    color: var(--text-main);
+    overflow-x: hidden;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  /* Sophisticated ambient lighting: subtle indigo & violet depth */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(100% 60% at 50% -5%, rgba(99, 102, 241, 0.035), transparent 50%),
+      radial-gradient(70% 40% at 95% 15%, rgba(139, 92, 246, 0.025), transparent 45%),
+      radial-gradient(80% 50% at 5% 40%, rgba(6, 182, 212, 0.02), transparent 40%);
+  }
+
+  .dark body::before {
+    background:
+      radial-gradient(100% 60% at 50% -5%, rgba(99, 102, 241, 0.06), transparent 50%),
+      radial-gradient(70% 40% at 95% 15%, rgba(139, 92, 246, 0.045), transparent 45%),
+      radial-gradient(80% 50% at 5% 40%, rgba(6, 182, 212, 0.03), transparent 40%);
+  }
+
+  #root {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: #6366f1;
+    color: #ffffff;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .font-display {
+    font-family: 'Outfit', 'Urbanist', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  .font-editorial,
+  .font-fraunces {
+    font-family: 'Fraunces', 'Lora', Georgia, serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    letter-spacing: -0.015em;
+  }
+
+  .font-lora {
+    font-family: 'Lora', Georgia, serif;
+    font-optical-sizing: auto;
+  }
+
+  .font-outfit {
+    font-family: 'Outfit', sans-serif;
+    font-optical-sizing: auto;
+  }
+
+  .font-manrope {
+    font-family: 'Manrope', sans-serif;
+    font-optical-sizing: auto;
+  }
+
+  .font-urbanist {
+    font-family: 'Urbanist', sans-serif;
+    font-optical-sizing: auto;
+  }
+}
+
+@layer components {
+
+  /* Subtle glass surfaces */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--line);
+  }
+
+  .dark .glass-panel {
+    background: rgba(18, 22, 32, 0.80);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--line);
+  }
+
+  /* Card surface hierarchy */
+  .surface-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  }
+
+  .surface-elevated {
+    background-color: var(--bg-surface-elevated);
+    border: 1px solid var(--line-strong);
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+  }
+
+  /* Micro-patterns for texture without large images */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, var(--line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .bg-dots {
+    background-image: radial-gradient(var(--line-strong) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  /* Disciplined mono labels */
+  .mono-label {
+    font-family: '"JetBrains Mono"', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.35);
+    border-radius: 9999px;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.6);
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+}
