@@ -1,0 +1,11 @@
+.gradle
+build
+app/build
+.git
+.gitignore
+.gitattributes
+.idea
+.vscode
+.metals
+*.log
+*.tmp

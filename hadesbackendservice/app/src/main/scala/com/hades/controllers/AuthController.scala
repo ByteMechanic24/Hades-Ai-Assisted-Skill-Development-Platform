@@ -50,18 +50,7 @@ class AuthController(
             errorResponse(StatusCodes.BadRequest, "AUTH_ERROR", ex.getMessage)
         }
       case Success(None) =>
-        // Development convenience: auto-create if non-existent or return 401
-        val userId = s"user_${UUID.randomUUID().toString.take(8)}"
-        val now = Instant.now()
-        val newUser = User(userId, req.email, req.email.split("@").head.capitalize, "email", now, now)
-        onComplete(userRepo.save(newUser)) {
-          case Success(u) =>
-            val token = jwtAuthClient.createToken(u.id, u.email, u.name)
-            val resp = AuthResponse(token, AuthUserResponse(u.id, u.name, u.email, defaultAvatar, false))
-            complete(StatusCodes.OK, jsonEntity(resp.toJson.compactPrint))
-          case Failure(ex) =>
-            errorResponse(StatusCodes.BadRequest, "SIGN_IN_FAILED", ex.getMessage)
-        }
+        errorResponse(StatusCodes.Unauthorized, "INVALID_CREDENTIALS", "No account found with this email. Please sign up first.")
       case Failure(ex) =>
         errorResponse(StatusCodes.BadRequest, "AUTH_ERROR", ex.getMessage)
     }

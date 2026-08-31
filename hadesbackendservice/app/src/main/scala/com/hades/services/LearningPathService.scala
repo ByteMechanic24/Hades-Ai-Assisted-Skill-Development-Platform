@@ -4,14 +4,19 @@ import com.hades.clients.AiServiceClient
 import com.hades.models.{LearningPath, LearningPathNode, Milestone}
 import com.hades.repositories._
 import com.hades.schemas._
+import com.hades.schemas.LearningPathJsonProtocol._
 import com.hades.validation.AiResponseValidator
+import spray.json._
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 trait LearningPathService {
   def generateLearningPath(request: LearningPathRequest): Future[LearningPathResponse]
+  def generateAndPersistLearningPath(userId: String, request: LearningPathRequest): Future[LearningPathResponse]
   def generateLearningPathForUser(userId: String): Future[LearningPathResponse]
   def getUserLearningPath(userId: String): Future[Option[LearningPathResponse]]
+  def getUserLearningPaths(userId: String): Future[Seq[LearningPathResponse]]
   def getLearningPathById(id: String): Future[Option[LearningPathResponse]]
 }
 
@@ -31,38 +36,33 @@ class LearningPathServiceImpl(
     }
   }
 
-  override def generateLearningPathForUser(userId: String): Future[LearningPathResponse] = {
-    if (dashboardService == null || learningPathRepository == null) {
-      Future.failed(new IllegalStateException("DashboardService and LearningPathRepository are required for user path generation."))
-    } else {
-      dashboardService.getLearnerState(userId).flatMap { state =>
-        val p = state.profile.getOrElse(com.hades.models.LearnerProfile(userId = userId))
-        val targetRole = if (p.targetRole.nonEmpty) p.targetRole else "Machine Learning Engineer"
-        val activeGoalTitle = state.activeGoal.map(_.title).getOrElse("Learn Core Fundamentals")
-        val activeGoalDesc = state.activeGoal.map(_.description).getOrElse("Build strong foundational knowledge.")
-
-        val learnerContext = LearnerContext(
-          experienceLevel = p.experienceLevel,
-          interests = if (state.interests.nonEmpty) state.interests.map(_.name) else Seq("Artificial Intelligence", "Python"),
-          career = CareerContext(targetRole = targetRole),
-          learningPreferences = p.learningPreferences,
-          availability = LearningAvailability(minutesPerDay = p.minutesPerDay, daysPerWeek = p.daysPerWeek),
-          existingSkills = state.skillProgresses.map(sp => SkillConfidence(sp.skillId, sp.confidence)),
-          completedLearning = state.resourceProgresses.filter(_.status == "completed").map(rp => CompletedLearning(rp.resourceId, "course")),
-          riasec = state.riasec.map(r => RiasecProfile(r.realistic, r.investigative, r.artistic, r.social, r.enterprising, r.conventional))
+  override def generateAndPersistLearningPath(userId: String, request: LearningPathRequest): Future[LearningPathResponse] = {
+    val enrichedRequestFut = if (dashboardService != null) {
+      dashboardService.getDashboard(userId).map { d =>
+        val targetRole = d.activeGoal.map(_.title).filter(_.trim.nonEmpty)
+          .orElse(Option(d.user.targetRole).filter(_.trim.nonEmpty))
+          .getOrElse("Machine Learning Engineer")
+        request.copy(
+          learner = request.learner.copy(
+            career = CareerContext(targetRole)
+          )
         )
+      }.recover { case _ => request }
+    } else {
+      Future.successful(request)
+    }
 
-        val req = LearningPathRequest(learnerContext, LearningGoalRequest(activeGoalTitle, activeGoalDesc))
-
-        aiServiceClient.generateLearningPath(req).flatMap { response =>
-          AiResponseValidator.validate(response) match {
-            case Left(valErr) => Future.failed(valErr)
-            case Right(validResp) =>
+    enrichedRequestFut.flatMap { validRequest =>
+      aiServiceClient.generateLearningPath(validRequest).flatMap { response =>
+        AiResponseValidator.validate(response) match {
+          case Left(valErr) => Future.failed(valErr)
+          case Right(validResp) =>
+            if (learningPathRepository != null) {
               val pathId = UUID.randomUUID().toString
               val lp = LearningPath(
                 id = pathId,
                 userId = userId,
-                goalId = state.activeGoal.map(_.id).getOrElse(""),
+                goalId = "",
                 title = validResp.title,
                 description = validResp.description,
                 estimatedHours = validResp.estimatedHours,
@@ -70,6 +70,7 @@ class LearningPathServiceImpl(
               )
 
               val nodes = validResp.nodes.zipWithIndex.map { case (n, idx) =>
+                val resJson = if (n.resources.nonEmpty) JsArray(n.resources.map(_.toJson).toVector).compactPrint else "[]"
                 LearningPathNode(
                   id = UUID.randomUUID().toString,
                   learningPathId = pathId,
@@ -80,7 +81,8 @@ class LearningPathServiceImpl(
                   sequence = n.sequence,
                   status = if (idx == 0) "in_progress" else "locked",
                   skillIds = n.skillIds,
-                  prerequisiteIds = n.prerequisiteIds
+                  prerequisiteIds = n.prerequisiteIds,
+                  resourcesJson = resJson
                 )
               }
 
@@ -95,10 +97,38 @@ class LearningPathServiceImpl(
               }
 
               learningPathRepository.saveTransactional(lp, nodes, milestones).map(_ => validResp)
-          }
+            } else {
+              Future.successful(validResp)
+            }
         }
       }
     }
+  }
+
+  override def generateLearningPathForUser(userId: String): Future[LearningPathResponse] = {
+    val req = LearningPathRequest(
+      learner = LearnerContext(
+        experienceLevel = "intermediate",
+        interests = Seq("Artificial Intelligence", "Python"),
+        career = CareerContext("Machine Learning Engineer"),
+        learningPreferences = Seq("visual", "practical"),
+        availability = LearningAvailability(
+          minutesPerDay = 60,
+          daysPerWeek = 5
+        ),
+        existingSkills = Seq(
+          SkillConfidence("Python", 0.7),
+          SkillConfidence("Algorithms", 0.8)
+        ),
+        completedLearning = Nil,
+        riasec = None
+      ),
+      goal = LearningGoalRequest(
+        title = "Machine Learning Engineer",
+        description = "Master machine learning foundations and deep learning models."
+      )
+    )
+    generateAndPersistLearningPath(userId, req)
   }
 
   override def getUserLearningPath(userId: String): Future[Option[LearningPathResponse]] = {
@@ -109,10 +139,57 @@ class LearningPathServiceImpl(
         case Some(lp) =>
           learningPathRepository.findNodesByPathId(lp.id).map { nodes =>
             val nodeResps = nodes.map { n =>
-              LearningPathNodeResponse(n.nodeId, n.title, n.description, n.skillIds, n.prerequisiteIds, n.estimatedHours, n.sequence)
+              val parsedResources = Try {
+                if (n.resourcesJson != null && n.resourcesJson.trim.nonEmpty && n.resourcesJson != "[]") {
+                  n.resourcesJson.parseJson.convertTo[Seq[NodeResourceResponse]]
+                } else Nil
+              }.getOrElse(Nil)
+
+              LearningPathNodeResponse(
+                id = n.nodeId,
+                title = n.title,
+                description = n.description,
+                skillIds = n.skillIds,
+                prerequisiteIds = n.prerequisiteIds,
+                estimatedHours = n.estimatedHours,
+                sequence = n.sequence,
+                resources = parsedResources
+              )
             }
             Some(LearningPathResponse(lp.title, lp.description, lp.estimatedHours, Nil, nodeResps, Nil))
           }
+      }
+    }
+  }
+
+  override def getUserLearningPaths(userId: String): Future[Seq[LearningPathResponse]] = {
+    if (learningPathRepository == null) Future.successful(Nil)
+    else {
+      learningPathRepository.findAllByUserId(userId).flatMap { pathList =>
+        val futures = pathList.map { lp =>
+          learningPathRepository.findNodesByPathId(lp.id).map { nodes =>
+            val nodeResps = nodes.map { n =>
+              val parsedResources = Try {
+                if (n.resourcesJson != null && n.resourcesJson.trim.nonEmpty && n.resourcesJson != "[]") {
+                  n.resourcesJson.parseJson.convertTo[Seq[NodeResourceResponse]]
+                } else Nil
+              }.getOrElse(Nil)
+
+              LearningPathNodeResponse(
+                id = n.nodeId,
+                title = n.title,
+                description = n.description,
+                skillIds = n.skillIds,
+                prerequisiteIds = n.prerequisiteIds,
+                estimatedHours = n.estimatedHours,
+                sequence = n.sequence,
+                resources = parsedResources
+              )
+            }
+            LearningPathResponse(lp.title, lp.description, lp.estimatedHours, Nil, nodeResps, Nil)
+          }
+        }
+        Future.sequence(futures)
       }
     }
   }
@@ -125,7 +202,22 @@ class LearningPathServiceImpl(
         case Some(lp) =>
           learningPathRepository.findNodesByPathId(lp.id).map { nodes =>
             val nodeResps = nodes.map { n =>
-              LearningPathNodeResponse(n.nodeId, n.title, n.description, n.skillIds, n.prerequisiteIds, n.estimatedHours, n.sequence)
+              val parsedResources = Try {
+                if (n.resourcesJson != null && n.resourcesJson.trim.nonEmpty && n.resourcesJson != "[]") {
+                  n.resourcesJson.parseJson.convertTo[Seq[NodeResourceResponse]]
+                } else Nil
+              }.getOrElse(Nil)
+
+              LearningPathNodeResponse(
+                id = n.nodeId,
+                title = n.title,
+                description = n.description,
+                skillIds = n.skillIds,
+                prerequisiteIds = n.prerequisiteIds,
+                estimatedHours = n.estimatedHours,
+                sequence = n.sequence,
+                resources = parsedResources
+              )
             }
             Some(LearningPathResponse(lp.title, lp.description, lp.estimatedHours, Nil, nodeResps, Nil))
           }

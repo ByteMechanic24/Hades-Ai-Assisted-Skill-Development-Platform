@@ -51,6 +51,16 @@ case class LearningGoalRequest(
   description: String
 )
 
+case class NodeResourceResponse(
+  id: String,
+  title: String,
+  url: String,
+  resourceType: String,
+  source: String,
+  description: Option[String] = None,
+  estimatedTime: Option[String] = None
+)
+
 case class LearningPathNodeResponse(
   id: String,
   title: String,
@@ -58,7 +68,8 @@ case class LearningPathNodeResponse(
   skillIds: Seq[String] = Nil,
   prerequisiteIds: Seq[String] = Nil,
   estimatedHours: Int,
-  sequence: Int
+  sequence: Int,
+  resources: Seq[NodeResourceResponse] = Nil
 )
 
 case class SkillResponse(
@@ -200,6 +211,7 @@ object LearningPathJsonProtocol extends DefaultJsonProtocol {
   implicit val learningPathRequestFormat: RootJsonFormat[LearningPathRequest] = jsonFormat2(LearningPathRequest)
 
   implicit val skillResponseFormat: RootJsonFormat[SkillResponse] = jsonFormat3(SkillResponse)
+  implicit val nodeResourceResponseFormat: RootJsonFormat[NodeResourceResponse] = jsonFormat7(NodeResourceResponse)
 
   implicit val learningPathNodeResponseFormat: RootJsonFormat[LearningPathNodeResponse] = new RootJsonFormat[LearningPathNodeResponse] {
     def write(obj: LearningPathNodeResponse): JsValue = JsObject(
@@ -209,7 +221,8 @@ object LearningPathJsonProtocol extends DefaultJsonProtocol {
       "skill_ids" -> JsArray(obj.skillIds.map(JsString(_)).toVector),
       "prerequisite_ids" -> JsArray(obj.prerequisiteIds.map(JsString(_)).toVector),
       "estimated_hours" -> JsNumber(obj.estimatedHours),
-      "sequence" -> JsNumber(obj.sequence)
+      "sequence" -> JsNumber(obj.sequence),
+      "resources" -> JsArray(obj.resources.map(_.toJson).toVector)
     )
 
     def read(json: JsValue): LearningPathNodeResponse = {
@@ -225,8 +238,11 @@ object LearningPathJsonProtocol extends DefaultJsonProtocol {
       }.getOrElse(Nil)
       val estHours = fields.get("estimated_hours").collect { case JsNumber(n) => n.toInt }.getOrElse(0)
       val seq = fields.get("sequence").collect { case JsNumber(n) => n.toInt }.getOrElse(1)
+      val resources = fields.get("resources").collect {
+        case JsArray(elems) => elems.map(_.convertTo[NodeResourceResponse])
+      }.getOrElse(Nil)
 
-      LearningPathNodeResponse(id, title, description, skillIds, prereqIds, estHours, seq)
+      LearningPathNodeResponse(id, title, description, skillIds, prereqIds, estHours, seq, resources)
     }
   }
 

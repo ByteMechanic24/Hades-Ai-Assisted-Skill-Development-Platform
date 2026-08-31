@@ -1,9 +1,39 @@
-.gradle/
-build/
-.metals/
-.bsp/
-.vscode/
-.idea/
-*.log
+# Environments & Secrets
+.env
+.env.*
+!.env.example
+
+# Node & Frontend
 node_modules/
 dist/
+dist-ssr/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python & AI Service
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# Java, Scala & Gradle
+.gradle/
+build/
+app/build/
+app/bin/
+.metals/
+.bsp/
+*.class
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*.log

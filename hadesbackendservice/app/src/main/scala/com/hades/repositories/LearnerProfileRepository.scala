@@ -54,7 +54,20 @@ class PostgresLearnerProfileRepository(db: Database)(implicit ec: ExecutionConte
   private val profiles = TableQuery[LearnerProfileTable]
 
   override def save(profile: LearnerProfile): Future[LearnerProfile] = {
-    val action = profiles.insertOrUpdate(profile)
+    val hoursPerWeek = (profile.minutesPerDay * profile.daysPerWeek) / 60
+    val upsertLearnerAction = sqlu"""
+      INSERT INTO learners (id, external_id, experience_level, available_hours_per_week)
+      VALUES (gen_random_uuid(), ${profile.userId}, ${profile.experienceLevel}, $hoursPerWeek)
+      ON CONFLICT (external_id) DO UPDATE
+      SET experience_level = EXCLUDED.experience_level,
+          available_hours_per_week = EXCLUDED.available_hours_per_week
+    """.asTry
+
+    val action = for {
+      _ <- upsertLearnerAction
+      _ <- profiles.insertOrUpdate(profile)
+    } yield profile
+
     db.run(action).map(_ => profile).recoverWith { case _ =>
       fallback.save(profile)
     }

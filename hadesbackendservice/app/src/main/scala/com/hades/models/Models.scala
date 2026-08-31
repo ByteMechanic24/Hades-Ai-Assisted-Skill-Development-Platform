@@ -101,6 +101,7 @@ case class LearningPathNode(
   status: String = "locked",
   skillIds: Seq[String] = Nil,
   prerequisiteIds: Seq[String] = Nil,
+  resourcesJson: String = "[]",
   createdAt: Instant = Instant.now(),
   updatedAt: Instant = Instant.now()
 )

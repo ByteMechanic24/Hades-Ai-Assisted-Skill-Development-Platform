@@ -61,42 +61,43 @@ class LearningPathController(
           post {
             optionalHeaderValueByName("Authorization") { authHeaderOpt =>
               optionalHeaderValueByName("X-User-Id") { customHeaderOpt =>
-                entity(as[String]) { jsonString =>
-                  if (jsonString.trim.nonEmpty) {
-                    Try(jsonString.parseJson.convertTo[LearningPathRequest]) match {
-                      case Failure(ex) =>
-                        errorResponse(StatusCodes.BadRequest, "INVALID_JSON", s"Invalid JSON payload: ${ex.getMessage}")
+                val token = authHeaderOpt.orElse(customHeaderOpt).getOrElse("dev-user-1")
+                val authFut = if (authClient != null) authClient.authenticate(token) else scala.concurrent.Future.successful(None)
+                onComplete(authFut) {
+                  case Success(userOpt) =>
+                    val userId = userOpt.map(_.id).getOrElse("dev-user-1")
+                    entity(as[String]) { jsonString =>
+                      if (jsonString.trim.nonEmpty) {
+                        Try(jsonString.parseJson.convertTo[LearningPathRequest]) match {
+                          case Failure(ex) =>
+                            errorResponse(StatusCodes.BadRequest, "INVALID_JSON", s"Invalid JSON payload: ${ex.getMessage}")
 
-                      case Success(request) =>
-                        RequestValidator.validate(request) match {
-                          case Left(valError) =>
-                            errorResponse(StatusCodes.BadRequest, "VALIDATION_ERROR", valError.getMessage)
+                          case Success(request) =>
+                            RequestValidator.validate(request) match {
+                              case Left(valError) =>
+                                errorResponse(StatusCodes.BadRequest, "VALIDATION_ERROR", valError.getMessage)
 
-                          case Right(validRequest) =>
-                            onComplete(learningPathService.generateLearningPath(validRequest)) {
-                              case Success(response) =>
-                                complete(StatusCodes.OK, jsonEntity(response.toJson.compactPrint))
+                              case Right(validRequest) =>
+                                onComplete(learningPathService.generateAndPersistLearningPath(userId, validRequest)) {
+                                  case Success(response) =>
+                                    complete(StatusCodes.OK, jsonEntity(response.toJson.compactPrint))
 
-                              case Failure(ex: AiServiceUnavailableException) =>
-                                errorResponse(StatusCodes.ServiceUnavailable, "AI_SERVICE_UNAVAILABLE", ex.getMessage)
+                                  case Failure(ex: AiServiceUnavailableException) =>
+                                    errorResponse(StatusCodes.ServiceUnavailable, "AI_SERVICE_UNAVAILABLE", ex.getMessage)
 
-                              case Failure(ex: AiServiceException) =>
-                                errorResponse(StatusCodes.BadGateway, "AI_SERVICE_ERROR", ex.getMessage)
+                                  case Failure(ex: AiServiceException) =>
+                                    errorResponse(StatusCodes.BadGateway, "AI_SERVICE_ERROR", ex.getMessage)
 
-                              case Failure(ex: ValidationException) =>
-                                errorResponse(StatusCodes.BadRequest, "VALIDATION_ERROR", ex.getMessage)
+                                  case Failure(ex: ValidationException) =>
+                                    errorResponse(StatusCodes.BadRequest, "VALIDATION_ERROR", ex.getMessage)
 
-                              case Failure(_) =>
-                                errorResponse(StatusCodes.InternalServerError, "INTERNAL_SERVER_ERROR", "An unexpected error occurred while processing the request.")
+                                  case Failure(ex) =>
+                                    errorResponse(StatusCodes.InternalServerError, "INTERNAL_SERVER_ERROR", s"An unexpected error occurred: ${ex.getMessage}")
+                                }
                             }
                         }
-                    }
-                  } else {
-                    val token = authHeaderOpt.orElse(customHeaderOpt).getOrElse("dev-user-1")
-                    val authFut = if (authClient != null) authClient.authenticate(token) else scala.concurrent.Future.successful(None)
-                    onComplete(authFut) {
-                      case Success(Some(user)) =>
-                        onComplete(learningPathService.generateLearningPathForUser(user.id)) {
+                      } else {
+                        onComplete(learningPathService.generateLearningPathForUser(userId)) {
                           case Success(response) =>
                             complete(StatusCodes.OK, jsonEntity(response.toJson.compactPrint))
                           case Failure(ex: AiServiceUnavailableException) =>
@@ -105,18 +106,39 @@ class LearningPathController(
                             errorResponse(StatusCodes.BadGateway, "AI_SERVICE_ERROR", ex.getMessage)
                           case Failure(ex: ValidationException) =>
                             errorResponse(StatusCodes.BadRequest, "VALIDATION_ERROR", ex.getMessage)
-                          case Failure(_) =>
-                            errorResponse(StatusCodes.InternalServerError, "INTERNAL_SERVER_ERROR", "An unexpected error occurred.")
+                          case Failure(ex) =>
+                            errorResponse(StatusCodes.InternalServerError, "INTERNAL_SERVER_ERROR", s"An unexpected error occurred: ${ex.getMessage}")
                         }
-                      case _ =>
-                        errorResponse(StatusCodes.Unauthorized, "UNAUTHORIZED", "Invalid authentication token.")
+                      }
                     }
-                  }
+                  case _ =>
+                    errorResponse(StatusCodes.Unauthorized, "UNAUTHORIZED", "Invalid authentication token.")
                 }
               }
             }
           }
         )
+      },
+      path("history") {
+        get {
+          optionalHeaderValueByName("Authorization") { authHeaderOpt =>
+            optionalHeaderValueByName("X-User-Id") { customHeaderOpt =>
+              val token = authHeaderOpt.orElse(customHeaderOpt).getOrElse("dev-user-1")
+              val authFut = if (authClient != null) authClient.authenticate(token) else scala.concurrent.Future.successful(None)
+              onComplete(authFut) {
+                case Success(Some(user)) =>
+                  onComplete(learningPathService.getUserLearningPaths(user.id)) {
+                    case Success(paths) =>
+                      complete(StatusCodes.OK, jsonEntity(JsArray(paths.map(_.toJson).toVector).compactPrint))
+                    case Failure(ex) =>
+                      errorResponse(StatusCodes.InternalServerError, "INTERNAL_ERROR", ex.getMessage)
+                  }
+                case _ =>
+                  errorResponse(StatusCodes.Unauthorized, "UNAUTHORIZED", "Invalid authentication token.")
+              }
+            }
+          }
+        }
       },
       path(Segment) { id =>
         get {

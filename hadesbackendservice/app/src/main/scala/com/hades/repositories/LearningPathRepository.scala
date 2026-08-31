@@ -14,6 +14,7 @@ trait LearningPathRepository {
 
   def findById(id: String): Future[Option[LearningPath]]
   def findActiveByUserId(userId: String): Future[Option[LearningPath]]
+  def findAllByUserId(userId: String): Future[Seq[LearningPath]]
   def findNodesByPathId(pathId: String): Future[Seq[LearningPathNode]]
   def updateNodeStatus(pathId: String, nodeId: String, status: String): Future[Unit]
 }
@@ -53,11 +54,12 @@ class PostgresLearningPathRepository(db: Database)(implicit ec: ExecutionContext
     def status = column[String]("status")
     def skillIds = column[String]("skill_ids")
     def prerequisiteIds = column[String]("prerequisite_ids")
+    def resourcesJson = column[String]("resources_json")
     def createdAt = column[Timestamp]("created_at")
     def updatedAt = column[Timestamp]("updated_at")
 
-    def * = (id, learningPathId, nodeId, title, description, estimatedHours, sequence, status, skillIds, prerequisiteIds, createdAt, updatedAt).shaped <> (
-      { case (id, pathId, nId, title, desc, hours, seq, status, sIds, pIds, createdAt, updatedAt) =>
+    def * = (id, learningPathId, nodeId, title, description, estimatedHours, sequence, status, skillIds, prerequisiteIds, resourcesJson, createdAt, updatedAt).shaped <> (
+      { case (id, pathId, nId, title, desc, hours, seq, status, sIds, pIds, resJson, createdAt, updatedAt) =>
         LearningPathNode(
           id = id,
           learningPathId = pathId,
@@ -69,6 +71,7 @@ class PostgresLearningPathRepository(db: Database)(implicit ec: ExecutionContext
           status = status,
           skillIds = if (sIds.trim.isEmpty) Nil else sIds.split(",").toSeq,
           prerequisiteIds = if (pIds.trim.isEmpty) Nil else pIds.split(",").toSeq,
+          resourcesJson = if (resJson == null || resJson.trim.isEmpty) "[]" else resJson,
           createdAt = createdAt.toInstant,
           updatedAt = updatedAt.toInstant
         )
@@ -85,6 +88,7 @@ class PostgresLearningPathRepository(db: Database)(implicit ec: ExecutionContext
           n.status,
           n.skillIds.mkString(","),
           n.prerequisiteIds.mkString(","),
+          n.resourcesJson,
           Timestamp.from(n.createdAt),
           Timestamp.from(n.updatedAt)
         ))
@@ -144,6 +148,12 @@ class PostgresLearningPathRepository(db: Database)(implicit ec: ExecutionContext
     }
   }
 
+  override def findAllByUserId(userId: String): Future[Seq[LearningPath]] = {
+    db.run(paths.filter(_.userId === userId).sortBy(_.createdAt.desc).result).recoverWith { case _ =>
+      fallback.findAllByUserId(userId)
+    }
+  }
+
   override def findNodesByPathId(pathId: String): Future[Seq[LearningPathNode]] = {
     db.run(nodesTable.filter(_.learningPathId === pathId).sortBy(_.sequence.asc).result).recoverWith { case _ =>
       fallback.findNodesByPathId(pathId)
@@ -195,6 +205,11 @@ class InMemoryLearningPathRepository extends LearningPathRepository {
     Future.successful(pathStore.asScala.find(p => p.userId == userId && p.status == "active"))
   }
 
+  override def findAllByUserId(userId: String): Future[Seq[LearningPath]] = {
+    import scala.jdk.CollectionConverters._
+    Future.successful(pathStore.asScala.filter(_.userId == userId).toSeq.sortBy(_.createdAt.toEpochMilli).reverse)
+  }
+
   override def findNodesByPathId(pathId: String): Future[Seq[LearningPathNode]] = {
     import scala.jdk.CollectionConverters._
     Future.successful(nodeStore.asScala.filter(_.learningPathId == pathId).toSeq.sortBy(_.sequence))
@@ -202,9 +217,9 @@ class InMemoryLearningPathRepository extends LearningPathRepository {
 
   override def updateNodeStatus(pathId: String, nodeId: String, status: String): Future[Unit] = {
     import scala.jdk.CollectionConverters._
-    nodeStore.asScala.find(n => n.learningPathId == pathId && n.nodeId == nodeId).foreach { existing =>
-      nodeStore.remove(existing)
-      nodeStore.add(existing.copy(status = status))
+    nodeStore.asScala.find(n => n.learningPathId == pathId && n.nodeId == nodeId).foreach { node =>
+      nodeStore.remove(node)
+      nodeStore.add(node.copy(status = status))
     }
     Future.successful(())
   }

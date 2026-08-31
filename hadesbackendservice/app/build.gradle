@@ -66,14 +66,23 @@ java {
 application {
     // Define the main class for the application.
     mainClass = 'com.hades.Application'
+    applicationDefaultJvmArgs = [
+        '--add-opens=java.base/sun.security.util.math.intpoly=ALL-UNNAMED',
+        '--add-opens=java.base/sun.security.util.math.intpoly=jdk.crypto.ec',
+        '--add-opens=java.base/sun.security.util.math=ALL-UNNAMED',
+        '--add-opens=java.base/sun.security.ssl=ALL-UNNAMED',
+        '--add-opens=java.base/java.text=ALL-UNNAMED',
+        '--add-opens=java.base/java.lang=ALL-UNNAMED',
+        '--add-opens=jdk.crypto.ec/sun.security.ec.ed=ALL-UNNAMED',
+        '--add-opens=jdk.crypto.ec/sun.security.ec=ALL-UNNAMED',
+        '--add-exports=java.base/sun.security.util.math.intpoly=jdk.crypto.ec',
+        '--add-exports=java.base/sun.security.util.math.intpoly=ALL-UNNAMED'
+    ]
 }
 
 tasks.named('run') {
     systemProperties System.properties
-    ['JWT_SECRET', 'DATABASE_URL', 'DATABASE_USER', 'DATABASE_PASSWORD', 'AI_SERVICE_URL', 'HTTP_PORT', 'HTTP_INTERFACE', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'].each { key ->
-        if (project.hasProperty(key)) {
-            systemProperty key, project.property(key)
-        }
-    }
+    environment System.getenv()
+    jvmArgs = application.applicationDefaultJvmArgs
 }
 
